@@ -84,6 +84,9 @@ public class Sample extends LinearOpMode {
     public void runOpMode() {
         robot = new Robot(hardwareMap);
         waitForStart();
+        if (gamepad1.dpad_down) {
+
+        }
         while (opModeIsActive()) {
             robot.tick();
         }
