@@ -6,22 +6,22 @@ import static java.lang.Double.min;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.CRServo;
-import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
 @TeleOp(name="shooter test", group="Linear OpMode")
 public class shootertest extends LinearOpMode {
-    DcMotor init_motor(String name, DcMotorSimple.Direction direction) {
-        DcMotor out = hardwareMap.get(DcMotor.class, name);
+    DcMotorEx init_motor(String name, DcMotorSimple.Direction direction) {
+        DcMotorEx out = hardwareMap.get(DcMotorEx.class, name);
         out.setDirection(direction);
-        out.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        out.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        out.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        out.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
+        out.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
+        out.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
         return out;
     }
     @Override
     public void runOpMode() {
-        DcMotor[] motors = {init_motor("m1", DcMotorSimple.Direction.FORWARD),
+        DcMotorEx[] motors = {init_motor("m1", DcMotorSimple.Direction.FORWARD),
                 init_motor("m2", DcMotorSimple.Direction.REVERSE)};
         CRServo s = hardwareMap.get(CRServo.class, "s");
         double speed = 0.1;
@@ -32,11 +32,11 @@ public class shootertest extends LinearOpMode {
             } if (gamepad1.right_bumper) {
                 speed = max(speed+0.05,1);
             } if (gamepad1.b) {
-                for (DcMotor motor: motors) {motor.setPower(speed);}
+                for (DcMotorEx motor: motors) {motor.setPower(speed);}
             } else if (gamepad1.x || gamepad1.y) {
-                for (DcMotor motor: motors) {motor.setPower(-speed);}
+                for (DcMotorEx motor: motors) {motor.setPower(-speed);}
             } else {
-                for (DcMotor motor: motors) {motor.setPower(0);}
+                for (DcMotorEx motor: motors) {motor.setPower(0);}
             }
             if (gamepad1.dpad_up) {
                 s.setPower(-0.2);
@@ -46,6 +46,9 @@ public class shootertest extends LinearOpMode {
                 s.setPower(0);
             }
             telemetry.addLine(String.valueOf(speed));
+            for (DcMotorEx motor: motors) {
+                telemetry.addLine(String.valueOf(motor.getVelocity()));
+            }
             telemetry.update();
         }
     }
