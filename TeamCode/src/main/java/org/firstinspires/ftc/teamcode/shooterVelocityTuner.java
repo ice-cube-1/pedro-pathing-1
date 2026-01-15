@@ -1,7 +1,5 @@
 package org.firstinspires.ftc.teamcode;
 
-import android.os.BadParcelableException;
-
 import com.bylazar.configurables.annotations.Configurable;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -11,8 +9,6 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
-import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 
@@ -25,20 +21,21 @@ public class shooterVelocityTuner extends LinearOpMode {
     public static double targetV = 200;
     public static float kP = 0.0005F;
     double power = 0;
+    int time = 0;
     ElapsedTime timer = new ElapsedTime();
+    AprilTagProcessor aprilTag;
     @Override
     public void runOpMode() {
-        AprilTagProcessor aprilTag = AprilTagProcessor.easyCreateWithDefaults();
-        VisionPortal visionPortal = VisionPortal.easyCreateWithDefaults(hardwareMap.get(WebcamName.class, "Webcam 1"), aprilTag);
+        //aprilTag = AprilTagProcessor.easyCreateWithDefaults();
+        //VisionPortal.easyCreateWithDefaults(hardwareMap.get(WebcamName.class, "Webcam 1"), aprilTag);
         boolean motor_running = false;
-        motors = new DcMotorEx[]{init_motor("m1", DcMotorSimple.Direction.FORWARD),
-                init_motor("m2", DcMotorSimple.Direction.REVERSE)};
+        motors = new DcMotorEx[]{init_motor("m1", DcMotorSimple.Direction.REVERSE),
+                init_motor("m2", DcMotorSimple.Direction.FORWARD)};
         CRServo s = hardwareMap.get(CRServo.class, "s");
         waitForStart();
         while (opModeIsActive()) {
             if (gamepad1.aWasPressed()) {
-                // so i don't do this by accident - UNCOMMENT
-                //motor_running = !motor_running;
+                motor_running = !motor_running;
                 timer.reset();
                 for (DcMotorEx motorEx: motors) {
                     motorEx.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -47,23 +44,17 @@ public class shooterVelocityTuner extends LinearOpMode {
             }
             if (motor_running) { integralVelocity(); }
             else { for (DcMotorEx motorEx: motors) { motorEx.setPower(0); } }
-            if (gamepad1.dpad_up) { s.setPower(-0.2);
-            } else if (gamepad1.dpad_down) { s.setPower(0.2);
+            if (gamepad1.dpadUpWasPressed()) {
+                s.setPower(-0.2);
+                sleep(200);
+                time += 200;
+            } else if (gamepad1.dpadDownWasPressed()) {
+                s.setPower(0.2);
+                sleep(200);
+                time -= 200;
             } else { s.setPower(0); }
-            List<AprilTagDetection> currentDetections = aprilTag.getDetections();
-            telemetry.addData("no. tags", currentDetections.size());
-            for (AprilTagDetection tag: currentDetections) {
-                if (tag.id == 20) {
-                    telemetry.addLine(tag.ftcPose.bearing + " - "+tag.ftcPose.range);
-                    if (tag.ftcPose.bearing > 5) {
-                        telemetry.addLine("Rotate clockwise");
-                    } else if (tag.ftcPose.bearing < -5) {
-                        telemetry.addLine("Rotate counterclockwise");
-                    } else {
-                        telemetry.addLine("ready to shoot - " + tag.ftcPose.range);
-                    }
-                }
-            }
+            telemetry.addLine(String.valueOf(time));
+            //detectAprilTags();
             telemetry.update();
         }
     }
@@ -74,11 +65,7 @@ public class shooterVelocityTuner extends LinearOpMode {
         for (DcMotorEx m : motors) { m.setPower(power); }
         telemetry.addData("Error", error);
         telemetry.addData("Power", power);
-        telemetry.addData("kp ",kP);
-        telemetry.addData("targetV ",targetV);
-        telemetry.update();
     }
-
     double getVelocity() {
         double ans = 0;
         for (DcMotorEx motor: motors) {
@@ -93,5 +80,21 @@ public class shooterVelocityTuner extends LinearOpMode {
         out.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         out.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         return out;
+    }
+    void detectAprilTags() {
+        List<AprilTagDetection> currentDetections = aprilTag.getDetections();
+        telemetry.addData("no. tags", currentDetections.size());
+        for (AprilTagDetection tag: currentDetections) {
+            if (tag.id == 20) {
+                telemetry.addLine(tag.ftcPose.bearing + " - "+tag.ftcPose.range);
+                if (tag.ftcPose.bearing > 5) {
+                    telemetry.addLine("Rotate clockwise");
+                } else if (tag.ftcPose.bearing < -5) {
+                    telemetry.addLine("Rotate counterclockwise");
+                } else {
+                    telemetry.addLine("ready to shoot - " + tag.ftcPose.range);
+                }
+            }
+        }
     }
 }

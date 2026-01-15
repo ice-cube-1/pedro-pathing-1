@@ -27,10 +27,10 @@ public class shootertest extends LinearOpMode {
         double speed = 0.1;
         waitForStart();
         while (opModeIsActive()) {
-            if (gamepad1.left_bumper) {
-                speed = min(speed-0.05, 0.1);
-            } if (gamepad1.right_bumper) {
-                speed = max(speed+0.05,1);
+            if (gamepad1.leftBumperWasPressed()) {
+                speed = max(speed-0.05, 0.1);
+            } if (gamepad1.rightBumperWasPressed()) {
+                speed = min(speed+0.05,1);
             } if (gamepad1.b) {
                 for (DcMotorEx motor: motors) {motor.setPower(speed);}
             } else if (gamepad1.x || gamepad1.y) {
