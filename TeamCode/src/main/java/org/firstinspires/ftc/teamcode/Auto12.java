@@ -2,6 +2,8 @@ package org.firstinspires.ftc.teamcode;
 
 import static org.firstinspires.ftc.teamcode.robotParts.RobotConstants.ROBOT_LENGTH_CM;
 import static org.firstinspires.ftc.teamcode.robotParts.RobotConstants.ROBOT_WIDTH_CM;
+import static java.lang.Double.max;
+import static java.lang.Math.min;
 import static java.lang.Math.toRadians;
 
 import com.bylazar.configurables.annotations.Configurable;
@@ -37,13 +39,9 @@ public class Auto12 extends LinearOpMode {
         this.tagID = tagID;
         this.attempt = numToAttempt;
     }
-    private ArrayList<Pose> poses;
-    private ArrayList<Path> paths;
-
-
     @Override
     public void runOpMode() {
-        poses = new ArrayList<>();
+        ArrayList<Pose> poses = new ArrayList<>();
         poses.add(new Pose(offset - direction*(24+ROBOT_WIDTH_CM/(2.54*2)),144.0-ROBOT_LENGTH_CM/(2.54), toRadians(270)));
         poses.add(new Pose(offset - direction * 60.0, shooter_y, toRadians(270))); // SHOOT AFTER THIS
         for (int i = 0; i<3; i++) {
@@ -54,8 +52,8 @@ public class Auto12 extends LinearOpMode {
             poses.add(new Pose(offset - direction * 60.0, shooter_y, toRadians(270)));
         }
         poses.add(new Pose(offset - direction * 60.0, 60.0, toRadians(90*(1-direction))));
-        paths = new ArrayList<>();
-        for (int i = 1; i<poses.size(); i++) {
+        ArrayList<Path> paths = new ArrayList<>();
+        for (int i = 1; i< poses.size(); i++) {
             Path path = new Path(new BezierLine(poses.get(i - 1), poses.get(i)));
             path.setLinearHeadingInterpolation(poses.get(i - 1).getHeading(), poses.get(i).getHeading());
             paths.add(path);
@@ -63,7 +61,7 @@ public class Auto12 extends LinearOpMode {
         follower = Constants.createFollower(hardwareMap);
         follower.setStartingPose(poses.get(0));
         shooter = new Shooter(hardwareMap, tagID);
-        shooter.setSubRange(direction*shooter_y, 0.0);
+        shooter.setSubRange(min(direction*90.0, 0.0), max(direction*90.0, 0.0));
         transferIntake = new TransferIntake(hardwareMap);
         waitForStart();
         shooter.turnOnShooter();
