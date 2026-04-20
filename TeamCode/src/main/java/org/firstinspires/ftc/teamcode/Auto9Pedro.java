@@ -74,35 +74,35 @@ public class Auto9Pedro extends LinearOpMode {
         );
         shoot = new Pose(
                 offset - direction * 60.0,
-                84.0,
+                83.0,
                 toRadians(270)
         );
         intake1Start = new Pose(
                 offset - direction * 60.0,
-                84.0,
+                83.0,
                 toRadians(90-90*direction)
         );
 
         intake1End = new Pose(
                 offset - direction * 18.0,
-                84.0,
+                83.0,
                 toRadians(90-90*direction)
         );
         intake2Start = new Pose(
                 offset - direction * 60.0,
-                60.0,
+                59.0,
                 toRadians(90-90*direction)
         );
 
         intake2End = new Pose(
                 offset - direction * 18.0,
-                60.0,
+                59.0,
                 toRadians(90-90*direction)
         );
 
         park = new Pose(
                 offset - direction * 60.0,
-                60.0,
+                59.0,
                 toRadians(270)
         );
     }
