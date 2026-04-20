@@ -14,11 +14,11 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 
 public class Constants {
     public static FollowerConstants followerConstants = new FollowerConstants()
-            .headingPIDFCoefficients(new PIDFCoefficients(0.9,0.0,0.1,0.04))
-            .translationalPIDFCoefficients(new PIDFCoefficients(0.08,0.0,0.0001,0.04))
-            .drivePIDFCoefficients(new FilteredPIDFCoefficients(0.006,0.0,0.0,0.6,0.0))
-            .forwardZeroPowerAcceleration(-36.4121702774264)
-            .lateralZeroPowerAcceleration(-44.48100887726937)
+            .headingPIDFCoefficients(new PIDFCoefficients(1.5,0.0,0.15,0.00))
+            .translationalPIDFCoefficients(new PIDFCoefficients(0.03,0.0,0.0001,0.02))
+            .drivePIDFCoefficients(new FilteredPIDFCoefficients(0.007,0.0,0.0,0.6,0.0))
+            .forwardZeroPowerAcceleration(-31.876591531699148)
+            .lateralZeroPowerAcceleration(-49.102327373824885)
             .centripetalScaling(0.015)
             .mass(5);
     public static MecanumConstants driveConstants = new MecanumConstants()
@@ -32,8 +32,8 @@ public class Constants {
             .rightFrontMotorDirection(DcMotorSimple.Direction.FORWARD)
             .rightRearMotorDirection(DcMotorSimple.Direction.FORWARD)
             .useBrakeModeInTeleOp(true)
-            .yVelocity(39.575690497431395)
-            .xVelocity(38.92510387440863);
+            .yVelocity(43.28890046433976)
+            .xVelocity(45.21790630501079);
     public static ThreeWheelConstants localizerConstants = new ThreeWheelConstants()
             .forwardTicksToInches(0.0023583856160810848)
             .strafeTicksToInches(0.002872550456680683)
@@ -46,7 +46,7 @@ public class Constants {
             .strafeEncoderDirection(Encoder.REVERSE)
             .leftPodY(10.0)
             .rightPodY(-10.0)
-            .strafePodX(-12.0);
+            .strafePodX(-9.6);
     public static PathConstraints pathConstraints = new PathConstraints(0.99, 100, 1, 1);
 
     public static Follower createFollower(HardwareMap hardwareMap) {

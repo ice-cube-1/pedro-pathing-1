@@ -6,7 +6,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
 @TeleOp
-class ShooterEncoder extends LinearOpMode {
+public class ShooterEncoder extends LinearOpMode {
      public void runOpMode() {
         DcMotor[] motors = new DcMotor[] {hardwareMap.get(DcMotor.class, "m1"), hardwareMap.get(DcMotor.class, "m2")};
         waitForStart();
