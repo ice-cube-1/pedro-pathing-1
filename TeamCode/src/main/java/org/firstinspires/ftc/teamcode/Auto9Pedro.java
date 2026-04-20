@@ -3,6 +3,8 @@ package org.firstinspires.ftc.teamcode;
 import static org.firstinspires.ftc.teamcode.robotParts.RobotConstants.ROBOT_LENGTH_CM;
 import static org.firstinspires.ftc.teamcode.robotParts.RobotConstants.ROBOT_WIDTH_CM;
 
+import static java.lang.Math.toRadians;
+
 import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.paths.Path;
@@ -17,12 +19,11 @@ import com.pedropathing.follower.Follower;
 
 import java.util.Arrays;
 
-public abstract class Auto9Pedro extends LinearOpMode {
+public class Auto9Pedro extends LinearOpMode {
     private Follower follower;
     private Shooter shooter;
     private TransferIntake transferIntake;
     private final ElapsedTime timer = new ElapsedTime();
-    private final ElapsedTime atSpeed = new ElapsedTime();
     private final double offset;
     private final double direction;
     private final int tagID;
@@ -43,7 +44,6 @@ public abstract class Auto9Pedro extends LinearOpMode {
         shooter = new Shooter(hardwareMap, tagID);
         shooter.setSubRange(direction*90.0, 0.0);
         transferIntake = new TransferIntake(hardwareMap);
-
         waitForStart();
         transferIntake.prepShooter();
         shooter.turnOnShooter();
@@ -70,40 +70,40 @@ public abstract class Auto9Pedro extends LinearOpMode {
         start = new Pose(
                 offset - direction*(24+ROBOT_WIDTH_CM/(2.54*2)),
                 144.0-ROBOT_LENGTH_CM/(2.54*2),
-                270
+                toRadians(270)
         );
         shoot = new Pose(
                 offset - direction * 60.0,
                 84.0,
-                270
+                toRadians(270)
         );
         intake1Start = new Pose(
                 offset - direction * 60.0,
                 84.0,
-                90-90*direction
+                toRadians(90-90*direction)
         );
 
         intake1End = new Pose(
                 offset - direction * 18.0,
                 84.0,
-                90-90*direction
+                toRadians(90-90*direction)
         );
         intake2Start = new Pose(
                 offset - direction * 60.0,
                 60.0,
-                90-90*direction
+                toRadians(90-90*direction)
         );
 
         intake2End = new Pose(
                 offset - direction * 18.0,
                 60.0,
-                90-90*direction
+                toRadians(90-90*direction)
         );
 
         park = new Pose(
-                60.0,
                 offset - direction * 60.0,
-                270
+                60.0,
+                toRadians(270)
         );
     }
 
@@ -145,15 +145,13 @@ public abstract class Auto9Pedro extends LinearOpMode {
         timer.reset();
         while (opModeIsActive() && timer.milliseconds() < 3000) {
             updateAll();
-            if (atSpeed.milliseconds() > 50 && shooter.canShoot()) {
+            if (shooter.atSpeed && shooter.canShoot()) {
                 transferIntake.shoot(true);
                 break;
             }
         }
         timer.reset();
-        while (opModeIsActive() && timer.milliseconds() < 2000) {
-            updateAll();
-        }
+        while (opModeIsActive() && timer.milliseconds() < 2000) {updateAll();}
         transferIntake.shoot(false);
     }
 
@@ -165,8 +163,5 @@ public abstract class Auto9Pedro extends LinearOpMode {
         telemetry.addLine(transferIntake.getData());
         telemetry.addLine(Arrays.toString(follower.debug()));
         telemetry.update();
-        if (!shooter.atSpeed) {
-            atSpeed.reset();
-        }
     }
 }
