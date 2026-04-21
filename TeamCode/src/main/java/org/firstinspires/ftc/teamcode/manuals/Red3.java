@@ -8,5 +8,5 @@ import org.firstinspires.ftc.teamcode.Manual;
 
 @TeleOp(name = "Manual, RED , intake RIGHT")
 public class Red3 extends Manual { public Red3() {
-    super(-PI/2, 20);
+    super(-PI/2, 24);
 }}

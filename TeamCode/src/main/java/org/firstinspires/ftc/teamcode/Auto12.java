@@ -20,6 +20,9 @@ import org.firstinspires.ftc.teamcode.robotParts.TransferIntake;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+
+import kotlin.Triple;
+
 @Configurable
 public class Auto12 extends LinearOpMode {
     private Follower follower;
@@ -31,9 +34,8 @@ public class Auto12 extends LinearOpMode {
     private final int tagID;
     private final int attempt;
     public static double shooter_y = 90.0;
-    public static double[] intakePositions = new double[] {84.0,60.0,36.0};
-    public static double intake_far_x = 34.0;
     public static double turn_dist = 1.0;
+    public static double rot_offset = -8.0;
     public Auto12(double offset, double direction, int numToAttempt, int tagID) {
         this.offset = offset;
         this.direction = direction;
@@ -42,17 +44,22 @@ public class Auto12 extends LinearOpMode {
     }
     @Override
     public void runOpMode() {
+        double[][] intakePositions = new double[][] {
+                {84.0 - 12.0, 28.0, toRadians(90 * (1 - direction))},
+                {60.0 - 12.0, 26.0, toRadians(90 - (90 + rot_offset) * direction)},
+                {36.0 - 12.0, 26.0, toRadians(90 - (90 + rot_offset * 2) * direction)}
+        };
         ArrayList<Pose> poses = new ArrayList<>();
         poses.add(new Pose(offset - direction*(24+ROBOT_WIDTH_CM/(2.54*2)),144.0-ROBOT_LENGTH_CM/(2.54), toRadians(270)));
         poses.add(new Pose(offset - direction * 60.0, shooter_y, toRadians(270))); // SHOOT AFTER THIS
         for (int i = 0; i<3; i++) {
-            poses.add(new Pose(offset - direction * 60.0, intakePositions[i]-turn_dist, toRadians(270)));
-            poses.add(new Pose(offset - direction * 60.0, intakePositions[i], toRadians(90*(1-direction)))); // INTAKE AFTER THIS
-            poses.add(new Pose(offset - direction * intake_far_x, intakePositions[i],toRadians(90*(1-direction)))); // STOP INTAKING 1 HERE
+            poses.add(new Pose(offset - direction * 60.0, intakePositions[i][0]-turn_dist, toRadians(270)));
+            poses.add(new Pose(offset - direction * 60.0, intakePositions[i][0], intakePositions[i][2])); // INTAKE AFTER THIS
+            poses.add(new Pose(offset - direction * intakePositions[i][1], intakePositions[i][0],intakePositions[i][2])); // STOP INTAKING 1 HERE
             poses.add(new Pose(offset - direction * 60.0, shooter_y-turn_dist, toRadians(90*(1-direction))));
             poses.add(new Pose(offset - direction * 60.0, shooter_y, toRadians(270)));
         }
-        poses.add(new Pose(offset - direction * 60.0, 60.0, toRadians(90*(1-direction))));
+        poses.add(new Pose(offset - direction * 60.0, 60.0-12.0, toRadians(270)));
         ArrayList<Path> paths = new ArrayList<>();
         for (int i = 1; i< poses.size(); i++) {
             Path path = new Path(new BezierLine(poses.get(i - 1), poses.get(i)));

@@ -29,7 +29,7 @@ public class Auto9Pedro extends LinearOpMode {
     private final double offset;
     private final double direction;
     private final int tagID;
-    public static float MULTIPLIER = 0.002F;
+    public static float MULTIPLIER = 0F;
     public Auto9Pedro(double offset, double direction, int tagID) {
         this.offset = offset;
         this.direction = direction;
