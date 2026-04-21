@@ -6,7 +6,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.Manual;
 
-@TeleOp(name = "Manual, RED, intake AWAY")
+@TeleOp(name = "Manual, RED, intake LEFT")
 public class Red2 extends Manual { public Red2() {
     super(PI/2, 20);
 }}
