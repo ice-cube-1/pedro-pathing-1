@@ -4,6 +4,7 @@ import static org.firstinspires.ftc.teamcode.pedroPathing.Constants.createFollow
 import static org.firstinspires.ftc.teamcode.robotParts.RobotConstants.MANUAL_MULTIPLIER;
 
 import com.pedropathing.follower.Follower;
+import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
@@ -41,6 +42,7 @@ public abstract class Manual extends LinearOpMode {
     @Override
     public void runOpMode() {
         follower = createFollower(hardwareMap);
+        follower.setStartingPose(new Pose(0,0,orientation));
         waitForStart();
         follower.startTeleopDrive();
         shooter = new Shooter(hardwareMap, tag);
@@ -50,7 +52,7 @@ public abstract class Manual extends LinearOpMode {
             follower.setTeleOpDrive(
                     -gamepad1.left_stick_y * MANUAL_MULTIPLIER,
                     -gamepad1.left_stick_x * MANUAL_MULTIPLIER,
-                    -gamepad1.right_stick_x * MANUAL_MULTIPLIER * 0.6,
+                    -gamepad1.right_stick_x * MANUAL_MULTIPLIER * 0.7,
                     false
             );
             if (gamepad1.left_bumper && timer.milliseconds() > timeToEnd) {

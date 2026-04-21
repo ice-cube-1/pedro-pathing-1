@@ -21,7 +21,7 @@ import org.firstinspires.ftc.teamcode.robotParts.TransferIntake;
 import java.util.ArrayList;
 import java.util.Arrays;
 @Configurable
-public class Auto12 extends LinearOpMode {
+public class Auto12Old extends LinearOpMode {
     private Follower follower;
     private Shooter shooter;
     private TransferIntake transferIntake;
@@ -33,8 +33,7 @@ public class Auto12 extends LinearOpMode {
     public static double shooter_y = 90.0;
     public static double[] intakePositions = new double[] {84.0,60.0,36.0};
     public static double intake_far_x = 34.0;
-    public static double turn_dist = 1.0;
-    public Auto12(double offset, double direction, int numToAttempt, int tagID) {
+    public Auto12Old(double offset, double direction, int numToAttempt, int tagID) {
         this.offset = offset;
         this.direction = direction;
         this.tagID = tagID;
@@ -46,10 +45,10 @@ public class Auto12 extends LinearOpMode {
         poses.add(new Pose(offset - direction*(24+ROBOT_WIDTH_CM/(2.54*2)),144.0-ROBOT_LENGTH_CM/(2.54), toRadians(270)));
         poses.add(new Pose(offset - direction * 60.0, shooter_y, toRadians(270))); // SHOOT AFTER THIS
         for (int i = 0; i<3; i++) {
-            poses.add(new Pose(offset - direction * 60.0, intakePositions[i]-turn_dist, toRadians(270)));
+            poses.add(new Pose(offset - direction * 60.0, intakePositions[i], toRadians(270)));
             poses.add(new Pose(offset - direction * 60.0, intakePositions[i], toRadians(90*(1-direction)))); // INTAKE AFTER THIS
             poses.add(new Pose(offset - direction * intake_far_x, intakePositions[i],toRadians(90*(1-direction)))); // STOP INTAKING 1 HERE
-            poses.add(new Pose(offset - direction * 60.0, shooter_y-turn_dist, toRadians(90*(1-direction))));
+            poses.add(new Pose(offset - direction * 60.0, shooter_y, toRadians(90*(1-direction))));
             poses.add(new Pose(offset - direction * 60.0, shooter_y, toRadians(270)));
         }
         poses.add(new Pose(offset - direction * 60.0, 60.0, toRadians(90*(1-direction))));
@@ -71,8 +70,8 @@ public class Auto12 extends LinearOpMode {
         shoot();
         for (int i = 0; i<attempt; i++) {
             follow(paths.get(i*5+1));
-            follow(paths.get(i*5+2));
             transferIntake.intake(1.0);
+            follow(paths.get(i*5+2));
             follow(paths.get(i*5+3));
             transferIntake.intake(0.0);
             follow(paths.get(i*5+4));
