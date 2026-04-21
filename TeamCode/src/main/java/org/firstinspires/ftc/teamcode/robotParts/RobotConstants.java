@@ -1,5 +1,8 @@
 package org.firstinspires.ftc.teamcode.robotParts;
 
+import com.bylazar.configurables.annotations.Configurable;
+
+@Configurable
 public class RobotConstants {
    public static double MANUAL_MULTIPLIER = 1.0;
 

@@ -100,7 +100,7 @@ public class Auto12Old extends LinearOpMode {
     }
     private void updateAll() {
         shooter.moveTurret();
-        shooter.spin();
+        shooter.spin(false);
         transferIntake.update();
         follower.update();
         telemetry.addLine(shooter.getData());

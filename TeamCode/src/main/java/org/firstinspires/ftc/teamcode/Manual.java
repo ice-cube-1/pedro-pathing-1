@@ -33,6 +33,8 @@ public abstract class Manual extends LinearOpMode {
     private final ElapsedTime timer = new ElapsedTime();
     private final ElapsedTime atSpeed = new ElapsedTime();
     private final ElapsedTime dpadTimer = new ElapsedTime();
+    private final ElapsedTime end = new ElapsedTime();
+    private boolean shootFromFar = false;
 
     public Manual(double orientation, int tag) {
         this.orientation = orientation;
@@ -47,7 +49,9 @@ public abstract class Manual extends LinearOpMode {
         follower.startTeleopDrive();
         shooter = new Shooter(hardwareMap, tag);
         transferIntake = new TransferIntake(hardwareMap);
+        end.reset();
         while (opModeIsActive()) {
+            if (end.seconds() > 150) break;
             follower.update();
             follower.setTeleOpDrive(
                     -gamepad1.left_stick_y * MANUAL_MULTIPLIER,
@@ -61,7 +65,6 @@ public abstract class Manual extends LinearOpMode {
                 shooter.turnOnShooter();
                 timeToEnd = timer.milliseconds() + 500;
             }
-
             if (gamepad1.right_bumper && timer.milliseconds() > timeToEnd) {
                 robotState = RobotState.INTAKE;
                 transferIntake.shoot(false);
@@ -80,6 +83,10 @@ public abstract class Manual extends LinearOpMode {
                 shooter.reverseGoto();
                 dpadTimer.reset();
             }
+            if (gamepad1.x) {
+                shootFromFar = !shootFromFar;
+                dpadTimer.reset();
+            }
             if (robotState == RobotState.INTAKE) {
                 transferIntake.intake((double) (gamepad1.left_trigger - gamepad1.right_trigger));
             }
@@ -96,7 +103,8 @@ public abstract class Manual extends LinearOpMode {
             }
             transferIntake.update();
             shooter.moveTurret();
-            shooter.spin();
+            telemetry.addData("shooting from far:", shootFromFar);
+            shooter.spin(shootFromFar);
             telemetry.addLine(shooter.getData());
             telemetry.addLine(transferIntake.getData());
             telemetry.update();

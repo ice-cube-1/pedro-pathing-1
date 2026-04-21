@@ -47,7 +47,7 @@ public class Shooter {
 
     private double nextPos = 0.0;
 
-    public boolean atSpeed = false;
+    public boolean atSpeed = true;
     public double distanceOffset = 0.0;
 
     private double turretMin = -TURRET_ZERO_DEG;
@@ -85,10 +85,13 @@ public class Shooter {
         return Math.abs(lastAngle) < 3 && turretState == TurretState.DETECTED;
     }
 
-    private int getTargetVelocity() {
-        hoodAngle.setPosition(HOOD_ANGLE);
-
+    private int getTargetVelocity(Boolean far) {
+        if (far) hoodAngle.setPosition(0.9);
+        else hoodAngle.setPosition(HOOD_ANGLE);
         if (shooterOn) {
+            if (far) {
+                return (int) (177.92 * (lastDist+0.8) + 937.31);
+            }
             return (int) (177.92 * lastDist + 937.31);
         } else {
             return SHOOTER_IDLE_VELOCITY;
@@ -188,8 +191,8 @@ public class Shooter {
         motors[1].setPower(0.0);
     }
 
-    public void spin() {
-        targetV = getTargetVelocity();
+    public void spin(Boolean far) {
+        targetV = getTargetVelocity(far);
 
         double currentV = Arrays.stream(motors)
                 .mapToDouble(Wheel::getVelocity)
@@ -216,7 +219,7 @@ public class Shooter {
                 "Turret current position " + getTurretAngle() +
                 ", going to " + gotoPos + "\n" +
                 "Shooter target: " + targetV +
-                ", aiming for " + getTargetVelocity() + "\n" +
+                ", aiming for " + getTargetVelocity(true) + " if far\n" +
                 "power " + power + "\n" +
                 "actually going at " +
                 motors[0].getVelocity() + ", " + motors[1].getVelocity() + "\n" +
