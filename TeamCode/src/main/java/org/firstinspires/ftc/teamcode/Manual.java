@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode;
 
 import static org.firstinspires.ftc.teamcode.pedroPathing.Constants.createFollower;
+import static org.firstinspires.ftc.teamcode.robotParts.RobotConstants.FAR_ZONE_MULTIPLIER;
 import static org.firstinspires.ftc.teamcode.robotParts.RobotConstants.MANUAL_MULTIPLIER;
 
 import com.pedropathing.follower.Follower;
@@ -102,7 +103,7 @@ public abstract class Manual extends LinearOpMode {
                 transferIntake.shoot(true);
             }
             transferIntake.update();
-            shooter.moveTurret();
+            shooter.moveTurret(shootFromFar ? FAR_ZONE_MULTIPLIER : 1.0);
             telemetry.addData("shooting from far:", shootFromFar);
             shooter.spin(shootFromFar);
             telemetry.addLine(shooter.getData());

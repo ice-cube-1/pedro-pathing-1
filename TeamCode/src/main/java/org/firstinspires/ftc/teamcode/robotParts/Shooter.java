@@ -38,7 +38,6 @@ public class Shooter {
     private double mostRecent = -1000.0;
 
     private final ElapsedTime timer = new ElapsedTime();
-    private final ElapsedTime scanTimer = new ElapsedTime();
 
     private TurretState turretState = TurretState.WRAPPING;
 
@@ -86,8 +85,8 @@ public class Shooter {
     }
 
     private int getTargetVelocity(Boolean far) {
-        if (far) hoodAngle.setPosition(0.9);
-        else hoodAngle.setPosition(HOOD_ANGLE);
+        if (far) hoodAngle.setPosition(0.85);
+        else hoodAngle.setPosition(1.0);
         if (shooterOn) {
             if (far) {
                 return (int) (177.92 * (lastDist+0.8) + 937.31);
@@ -118,7 +117,7 @@ public class Shooter {
         }
     }
 
-    public void moveTurret() {
+    public void moveTurret(double farZoneMultiplier) {
         lookForTag();
 
         switch (turretState) {
@@ -127,7 +126,11 @@ public class Shooter {
                 if (timer.milliseconds() > mostRecent + 500) {
                     turretState = TurretState.WRAPPING;
                 } else if (Math.abs(lastAngle) > 1.0) {
-                    nextPos = lastAngle * TURRET_KP + getTurretAngle();
+                    if (farZoneMultiplier == 1) {
+                        nextPos = lastAngle * 0.02 + getTurretAngle();
+                    } else {
+                        nextPos = lastAngle * 0.015 + getTurretAngle();
+                    }
                 }
                 break;
 
@@ -135,10 +138,9 @@ public class Shooter {
                 if (timer.milliseconds() < mostRecent + 500) {
                     turretState = TurretState.DETECTED;
                 } else {
-                    nextPos = (gotoPos - getTurretAngle() > 0 ? TURRET_STEP : -TURRET_STEP)
+                    nextPos = (gotoPos - getTurretAngle() > 0 ? TURRET_STEP*farZoneMultiplier : -TURRET_STEP*farZoneMultiplier)
                             + getTurretAngle();
 
-                    scanTimer.reset();
                 }
                 break;
         }
@@ -205,9 +207,7 @@ public class Shooter {
                 Math.min(1.0,
                         KP_SHOOTER * errorV + targetV * K_FF + KFF_INTERCEPT));
 
-        for (Wheel m : motors) {
-            m.setPower(power);
-        }
+        for (Wheel m : motors) {m.setPower(power);}
 
         atSpeed = Math.abs(errorV) < 40;
     }
@@ -219,10 +219,9 @@ public class Shooter {
                 "Turret current position " + getTurretAngle() +
                 ", going to " + gotoPos + "\n" +
                 "Shooter target: " + targetV +
-                ", aiming for " + getTargetVelocity(true) + " if far\n" +
                 "power " + power + "\n" +
                 "actually going at " +
                 motors[0].getVelocity() + ", " + motors[1].getVelocity() + "\n" +
-                "OFFSET - " + distanceOffset + " CM";
+                "OFFSET - " + distanceOffset + " m\nservo position "+hoodAngle.getPosition();
     }
 }

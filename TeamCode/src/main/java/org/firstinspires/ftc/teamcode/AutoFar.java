@@ -6,7 +6,6 @@ import static java.lang.Double.max;
 import static java.lang.Math.min;
 import static java.lang.Math.toRadians;
 
-import com.bylazar.configurables.annotations.Configurable;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.geometry.Pose;
@@ -20,8 +19,8 @@ import org.firstinspires.ftc.teamcode.robotParts.TransferIntake;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-@Configurable
-public class Auto12Old extends LinearOpMode {
+
+public class AutoFar extends LinearOpMode {
     private Follower follower;
     private Shooter shooter;
     private TransferIntake transferIntake;
@@ -29,29 +28,20 @@ public class Auto12Old extends LinearOpMode {
     private final double offset;
     private final double direction;
     private final int tagID;
-    private final int attempt;
-    public static double shooter_y = 90.0;
-    public static double[] intakePositions = new double[] {84.0,60.0,36.0};
-    public static double intake_far_x = 34.0;
-    public Auto12Old(double offset, double direction, int numToAttempt, int tagID) {
+
+    public AutoFar(double offset, double direction, int tagID) {
         this.offset = offset;
         this.direction = direction;
         this.tagID = tagID;
-        this.attempt = numToAttempt;
     }
-    @Override
-    public void runOpMode() {
+    public void runOpMode()  {
         ArrayList<Pose> poses = new ArrayList<>();
-        poses.add(new Pose(offset - direction*(24+ROBOT_WIDTH_CM/(2.54*2)),144.0-ROBOT_LENGTH_CM/(2.54), toRadians(270)));
-        poses.add(new Pose(offset - direction * 60.0, shooter_y, toRadians(270))); // SHOOT AFTER THIS
-        for (int i = 0; i<3; i++) {
-            poses.add(new Pose(offset - direction * 60.0, intakePositions[i], toRadians(270)));
-            poses.add(new Pose(offset - direction * 60.0, intakePositions[i], toRadians(90*(1-direction)))); // INTAKE AFTER THIS
-            poses.add(new Pose(offset - direction * intake_far_x, intakePositions[i],toRadians(90*(1-direction)))); // STOP INTAKING 1 HERE
-            poses.add(new Pose(offset - direction * 60.0, shooter_y, toRadians(90*(1-direction))));
-            poses.add(new Pose(offset - direction * 60.0, shooter_y, toRadians(270)));
-        }
-        poses.add(new Pose(offset - direction * 60.0, 60.0, toRadians(90*(1-direction))));
+        poses.add(new Pose(offset - direction*(48+ROBOT_WIDTH_CM/(2.54*2)), ROBOT_LENGTH_CM/(2.54),toRadians(270)));
+        poses.add(new Pose(offset - direction*(48+ROBOT_WIDTH_CM/(2.54*2)),ROBOT_LENGTH_CM/(2.54)+6, toRadians(270))); // shoot here
+        poses.add(new Pose(offset-direction*60.0,84.0-24.0-18.0,toRadians(90 - 90 * direction))); // start intaking here
+        poses.add(new Pose(offset-direction*26.0, 84.0-24.0-18.0, 90 - 90*direction)); // stop intaking here
+        poses.add(new Pose(offset - direction*(48+ROBOT_WIDTH_CM/(2.54*2)), ROBOT_LENGTH_CM/(2.54)+6,toRadians(270))); // shoot here
+        poses.add(new Pose(offset - direction*(48+ROBOT_WIDTH_CM/(2.54*2)), ROBOT_LENGTH_CM/(2.54)+24,toRadians(270))); // park
         ArrayList<Path> paths = new ArrayList<>();
         for (int i = 1; i< poses.size(); i++) {
             Path path = new Path(new BezierLine(poses.get(i - 1), poses.get(i)));
@@ -64,22 +54,18 @@ public class Auto12Old extends LinearOpMode {
         shooter.setSubRange(min(direction*90.0, 0.0), max(direction*90.0, 0.0));
         transferIntake = new TransferIntake(hardwareMap);
         waitForStart();
-        shooter.turnOnShooter();
         transferIntake.prepShooter();
+        shooter.turnOnShooter();
         follow(paths.get(0));
         shoot();
-        for (int i = 0; i<attempt; i++) {
-            follow(paths.get(i*5+1));
-            transferIntake.intake(1.0);
-            follow(paths.get(i*5+2));
-            follow(paths.get(i*5+3));
-            transferIntake.intake(0.0);
-            follow(paths.get(i*5+4));
-            transferIntake.prepShooter();
-            follow(paths.get(i*5+5));
-            shoot();
-        }
-        follow(paths.get(16));
+        follow(paths.get(1));
+        transferIntake.intake(1.0);
+        follow(paths.get(2));
+        transferIntake.intake(0.0);
+        follow(paths.get(3));
+        transferIntake.prepShooter();
+        shoot();
+        follow(paths.get(4));
     }
     private void follow(Path path) {
         follower.followPath(path);
@@ -99,8 +85,8 @@ public class Auto12Old extends LinearOpMode {
         transferIntake.shoot(false);
     }
     private void updateAll() {
-        shooter.moveTurret();
-        shooter.spin(false);
+        shooter.moveTurret(1.0);
+        shooter.spin(true);
         transferIntake.update();
         follower.update();
         telemetry.addLine(shooter.getData());

@@ -32,4 +32,5 @@ public class RobotConstants {
     public static double KFF_INTERCEPT = 0.0652076247;
 
     public static double OFFSET = 0.3;
+    public static double FAR_ZONE_MULTIPLIER = 0.5;
 }

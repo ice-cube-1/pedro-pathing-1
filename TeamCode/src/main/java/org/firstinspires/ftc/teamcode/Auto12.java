@@ -35,7 +35,6 @@ public class Auto12 extends LinearOpMode {
     private final int tagID;
     private final int attempt;
     public static double shooter_y = 80.0;
-    public static double turn_dist = 1.0;
     public Auto12(double offset, double direction, int numToAttempt, int tagID) {
         this.offset = offset;
         this.direction = direction;
@@ -78,10 +77,12 @@ public class Auto12 extends LinearOpMode {
             follow(paths.get(i*3+1));
             transferIntake.intake(1.0);
             follow(paths.get(i*3+2));
-            transferIntake.prepShooter();
             transferIntake.intake(0.0);
-            follow(paths.get(i*3+3));
-            shoot();
+            if (i != 2) {
+                transferIntake.prepShooter();
+                follow(paths.get(i*3+3));
+                shoot();
+            }
         }
         follow(paths.get(10));
     }
@@ -103,7 +104,7 @@ public class Auto12 extends LinearOpMode {
         transferIntake.shoot(false);
     }
     private void updateAll() {
-        shooter.moveTurret();
+        shooter.moveTurret(1.0);
         shooter.spin(false);
         transferIntake.update();
         follower.update();
