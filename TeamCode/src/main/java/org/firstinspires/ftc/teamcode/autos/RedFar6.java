@@ -4,7 +4,7 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
 import org.firstinspires.ftc.teamcode.AutoFar;
 
-@Autonomous(name = "Far auto, RED")
-public class RedFar extends AutoFar { public RedFar() {
-    super(144,1, 24);
+@Autonomous(name = "Far auto, RED 6")
+public class RedFar6 extends AutoFar { public RedFar6() {
+    super(144,1, 24,1);
 }}

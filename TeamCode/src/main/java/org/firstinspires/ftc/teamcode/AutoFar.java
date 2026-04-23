@@ -28,19 +28,24 @@ public class AutoFar extends LinearOpMode {
     private final double offset;
     private final double direction;
     private final int tagID;
+    private final int attemptCount;
 
-    public AutoFar(double offset, double direction, int tagID) {
+    public AutoFar(double offset, double direction, int tagID, int attemptCount) {
         this.offset = offset;
         this.direction = direction;
         this.tagID = tagID;
+        this.attemptCount = attemptCount;
     }
     public void runOpMode()  {
         ArrayList<Pose> poses = new ArrayList<>();
         poses.add(new Pose(offset - direction*(48+ROBOT_WIDTH_CM/(2.54*2)), ROBOT_LENGTH_CM/(2.54),toRadians(270)));
         poses.add(new Pose(offset - direction*(48+ROBOT_WIDTH_CM/(2.54*2)),ROBOT_LENGTH_CM/(2.54)+6, toRadians(270))); // shoot here
-        poses.add(new Pose(offset-direction*60.0,84.0-24.0-18.0,toRadians(90 - 90 * direction))); // start intaking here
-        poses.add(new Pose(offset-direction*26.0, 84.0-24.0-18.0, 90 - 90*direction)); // stop intaking here
+        poses.add(new Pose(offset-direction*60.0,84.0-24.0-20.0,toRadians(90 - 90 * direction))); // start intaking here
+        poses.add(new Pose(offset-direction*20.0, 84.0-24.0-20.0, toRadians(90 - 90*direction))); // stop intaking here
         poses.add(new Pose(offset - direction*(48+ROBOT_WIDTH_CM/(2.54*2)), ROBOT_LENGTH_CM/(2.54)+6,toRadians(270))); // shoot here
+        poses.add(new Pose(offset-direction*9.0,84.0-24.0-6.0, toRadians(270)));
+        poses.add(new Pose(offset-direction*9.0,ROBOT_LENGTH_CM/(2.54), toRadians(270)));
+        poses.add(new Pose(offset - direction*(48+ROBOT_WIDTH_CM/(2.54*2)),ROBOT_LENGTH_CM/(2.54)+6, toRadians(270))); // shoot here
         poses.add(new Pose(offset - direction*(48+ROBOT_WIDTH_CM/(2.54*2)), ROBOT_LENGTH_CM/(2.54)+24,toRadians(270))); // park
         ArrayList<Path> paths = new ArrayList<>();
         for (int i = 1; i< poses.size(); i++) {
@@ -58,14 +63,16 @@ public class AutoFar extends LinearOpMode {
         shooter.turnOnShooter();
         follow(paths.get(0));
         shoot();
-        follow(paths.get(1));
-        transferIntake.intake(1.0);
-        follow(paths.get(2));
-        transferIntake.intake(0.0);
-        follow(paths.get(3));
-        transferIntake.prepShooter();
-        shoot();
-        follow(paths.get(4));
+        for (int i = 0; i<attemptCount; i++) {
+            follow(paths.get(i*3+1));
+            transferIntake.intake(1.0);
+            follow(paths.get(i*3+2));
+            transferIntake.intake(0.0);
+            follow(paths.get(i*3+3));
+            transferIntake.prepShooter();
+            shoot();
+        }
+        follow(paths.get(7));
     }
     private void follow(Path path) {
         follower.followPath(path);
@@ -86,7 +93,7 @@ public class AutoFar extends LinearOpMode {
     }
     private void updateAll() {
         shooter.moveTurret(1.0);
-        shooter.spin(true);
+        shooter.spin(true, false);
         transferIntake.update();
         follower.update();
         telemetry.addLine(shooter.getData());

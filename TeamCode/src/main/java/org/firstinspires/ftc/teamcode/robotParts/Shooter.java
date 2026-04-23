@@ -81,7 +81,7 @@ public class Shooter {
     }
 
     public boolean canShoot() {
-        return Math.abs(lastAngle) < 3 && turretState == TurretState.DETECTED;
+        return Math.abs(lastAngle) < 4 && turretState == TurretState.DETECTED;
     }
 
     private int getTargetVelocity(Boolean far) {
@@ -193,14 +193,16 @@ public class Shooter {
         motors[1].setPower(0.0);
     }
 
-    public void spin(Boolean far) {
+    public void spin(Boolean far, Boolean shootWithOneEncoder) {
         targetV = getTargetVelocity(far);
-
-        double currentV = Arrays.stream(motors)
-                .mapToDouble(Wheel::getVelocity)
-                .average()
-                .orElse(0.0);
-
+        double currentV;
+        if (shootWithOneEncoder) currentV = motors[0].getVelocity();
+        else {
+            currentV = Arrays.stream(motors)
+                    .mapToDouble(Wheel::getVelocity)
+                    .average()
+                    .orElse(0.0);
+        }
         double errorV = targetV - currentV;
 
         power = Math.max(0.0,

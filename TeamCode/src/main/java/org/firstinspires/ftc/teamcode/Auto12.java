@@ -44,9 +44,9 @@ public class Auto12 extends LinearOpMode {
     @Override
     public void runOpMode() {
         double[][] intakePositions = new double[][] {
-                {84.0-12.0, 28.0, toRadians(90 * (1 - direction))},
-                {60.0-12.0, 26.0, toRadians(90 - 90 * direction)},
-                {36.0-12.0, 26.0, toRadians(90 - 90 * direction)}
+                {84.0-15.0, 24.0, toRadians(90 * (1 - direction))},
+                {60.0-15.0, 20.0, toRadians(90 - 90 * direction)},
+                {36.0-15.0, 20.0, toRadians(90 - 90 * direction)}
         };
         ArrayList<Pose> poses = new ArrayList<>();
         poses.add(new Pose(offset - direction*(24+ROBOT_WIDTH_CM/(2.54*2)),144.0-ROBOT_LENGTH_CM/(2.54), toRadians(270)));
@@ -87,12 +87,13 @@ public class Auto12 extends LinearOpMode {
         follow(paths.get(10));
     }
     private void follow(Path path) {
+        timer.reset();
         follower.followPath(path);
-        while (opModeIsActive() && follower.isBusy()) {updateAll();}
+        while (opModeIsActive() && follower.isBusy() && timer.milliseconds() < 4000) {updateAll();}
     }
     private void shoot() {
         timer.reset();
-        while (opModeIsActive() && timer.milliseconds() < 3000) {
+        while (opModeIsActive() && timer.milliseconds() < 4000) {
             updateAll();
             if (shooter.atSpeed && shooter.canShoot()) {
                 transferIntake.shoot(true);
@@ -105,7 +106,7 @@ public class Auto12 extends LinearOpMode {
     }
     private void updateAll() {
         shooter.moveTurret(1.0);
-        shooter.spin(false);
+        shooter.spin(false, false);
         transferIntake.update();
         follower.update();
         telemetry.addLine(shooter.getData());

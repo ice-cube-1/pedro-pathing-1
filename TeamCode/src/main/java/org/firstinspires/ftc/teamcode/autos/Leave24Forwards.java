@@ -9,11 +9,14 @@ import com.pedropathing.paths.Path;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
+import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
+
 @Autonomous(name = "Auto - drive 24in forwards")
 public class Leave24Forwards extends LinearOpMode {
     private Follower follower;
     @Override
     public void runOpMode() {
+        follower = Constants.createFollower(hardwareMap);
         follower.setStartingPose(new Pose(0,0,PI/2));
         follower.followPath(new Path(new BezierLine(new Pose(0.0,0.0,PI/2), new Pose(0.0,24.0, PI/2))));
     }
