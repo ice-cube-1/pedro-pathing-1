@@ -35,6 +35,7 @@ public class Auto12 extends LinearOpMode {
     private final int tagID;
     private final int attempt;
     public static double shooter_y = 80.0;
+    public static double park_y = 105.0;
     public Auto12(double offset, double direction, int numToAttempt, int tagID) {
         this.offset = offset;
         this.direction = direction;
@@ -51,7 +52,7 @@ public class Auto12 extends LinearOpMode {
         ArrayList<Pose> poses = new ArrayList<>();
         poses.add(new Pose(offset - direction*(24+ROBOT_WIDTH_CM/(2.54*2)),144.0-ROBOT_LENGTH_CM/(2.54), toRadians(270)));
         if (attempt==0){
-            poses.add(new Pose(offset - direction * 60.0, 105.0-12.0, toRadians(270)));
+            poses.add(new Pose(offset - direction * 60.0, park_y-12.0, toRadians(270)));
         }
         else{
             poses.add(new Pose(offset - direction * 60.0, shooter_y, toRadians(270))); // SHOOT AFTER THIS
@@ -59,7 +60,7 @@ public class Auto12 extends LinearOpMode {
                 poses.add(new Pose(offset - direction * 60.0, intakePositions[i][0], intakePositions[i][2])); // INTAKE AFTER THIS
                 poses.add(new Pose(offset - direction * intakePositions[i][1], intakePositions[i][0],intakePositions[i][2])); // STOP INTAKING 1 HERE
                 if (attempt-1 == i){
-                    poses.add(new Pose(offset - direction * 60.0, 105.0-12.0, toRadians(270)));
+                    poses.add(new Pose(offset - direction * 60.0, park_y-12.0, toRadians(270)));
                 }
                 else{
                     poses.add(new Pose(offset - direction * 60.0, shooter_y, toRadians(270)));
