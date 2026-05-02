@@ -50,13 +50,22 @@ public class Auto12 extends LinearOpMode {
         };
         ArrayList<Pose> poses = new ArrayList<>();
         poses.add(new Pose(offset - direction*(24+ROBOT_WIDTH_CM/(2.54*2)),144.0-ROBOT_LENGTH_CM/(2.54), toRadians(270)));
-        poses.add(new Pose(offset - direction * 60.0, shooter_y, toRadians(270))); // SHOOT AFTER THIS
-        for (int i = 0; i<3; i++) {
-            poses.add(new Pose(offset - direction * 60.0, intakePositions[i][0], intakePositions[i][2])); // INTAKE AFTER THIS
-            poses.add(new Pose(offset - direction * intakePositions[i][1], intakePositions[i][0],intakePositions[i][2])); // STOP INTAKING 1 HERE
-            poses.add(new Pose(offset - direction * 60.0, shooter_y, toRadians(270)));
+        if (attempt==0){
+            poses.add(new Pose(offset - direction * 60.0, 105.0-12.0, toRadians(270)));
         }
-        poses.add(new Pose(offset - direction * 60.0, 60.0-12.0, toRadians(270)));
+        else{
+            poses.add(new Pose(offset - direction * 60.0, shooter_y, toRadians(270))); // SHOOT AFTER THIS
+            for (int i = 0; i<attempt; i++) {
+                poses.add(new Pose(offset - direction * 60.0, intakePositions[i][0], intakePositions[i][2])); // INTAKE AFTER THIS
+                poses.add(new Pose(offset - direction * intakePositions[i][1], intakePositions[i][0],intakePositions[i][2])); // STOP INTAKING 1 HERE
+                if (attempt-1 == i){
+                    poses.add(new Pose(offset - direction * 60.0, 105.0-12.0, toRadians(270)));
+                }
+                else{
+                    poses.add(new Pose(offset - direction * 60.0, shooter_y, toRadians(270)));
+                }
+            }
+        }
         ArrayList<Path> paths = new ArrayList<>();
         for (int i = 1; i< poses.size(); i++) {
             Path path = new Path(new BezierLine(poses.get(i - 1), poses.get(i)));
@@ -84,7 +93,7 @@ public class Auto12 extends LinearOpMode {
                 shoot();
             }
         }
-        follow(paths.get(10));
+        //follow(paths.get(10));
     }
     private void follow(Path path) {
         timer.reset();
