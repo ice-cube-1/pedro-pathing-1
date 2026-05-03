@@ -8,7 +8,6 @@ import static java.lang.Math.toRadians;
 
 import com.bylazar.configurables.annotations.Configurable;
 import com.pedropathing.follower.Follower;
-import com.pedropathing.geometry.BezierCurve;
 import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.paths.Path;
@@ -22,8 +21,6 @@ import org.firstinspires.ftc.teamcode.robotParts.TransferIntake;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-import kotlin.Triple;
-
 @Configurable
 public class Auto12 extends LinearOpMode {
     private Follower follower;
@@ -35,7 +32,7 @@ public class Auto12 extends LinearOpMode {
     private final int tagID;
     private final int attempt;
     public static double shooter_y = 80.0;
-    public static double park_y = 105.0;
+    public static double park_y = 105.0 - 12.0;
     public Auto12(double offset, double direction, int numToAttempt, int tagID) {
         this.offset = offset;
         this.direction = direction;
@@ -51,22 +48,12 @@ public class Auto12 extends LinearOpMode {
         };
         ArrayList<Pose> poses = new ArrayList<>();
         poses.add(new Pose(offset - direction*(24+ROBOT_WIDTH_CM/(2.54*2)),144.0-ROBOT_LENGTH_CM/(2.54), toRadians(270)));
-        if (attempt==0){
-            poses.add(new Pose(offset - direction * 60.0, park_y-12.0, toRadians(270)));
-        }
-        else{
+        for (int i = 0; i<attempt; i++) {
             poses.add(new Pose(offset - direction * 60.0, shooter_y, toRadians(270))); // SHOOT AFTER THIS
-            for (int i = 0; i<attempt; i++) {
-                poses.add(new Pose(offset - direction * 60.0, intakePositions[i][0], intakePositions[i][2])); // INTAKE AFTER THIS
-                poses.add(new Pose(offset - direction * intakePositions[i][1], intakePositions[i][0],intakePositions[i][2])); // STOP INTAKING 1 HERE
-                if (attempt-1 == i){
-                    poses.add(new Pose(offset - direction * 60.0, park_y-12.0, toRadians(270)));
-                }
-                else{
-                    poses.add(new Pose(offset - direction * 60.0, shooter_y, toRadians(270)));
-                }
-            }
+            poses.add(new Pose(offset - direction * 60.0, intakePositions[i][0], intakePositions[i][2])); // INTAKE AFTER THIS
+            poses.add(new Pose(offset - direction * intakePositions[i][1], intakePositions[i][0],intakePositions[i][2])); // STOP INTAKING 1 HERE
         }
+        poses.add(new Pose(offset - direction * 60.0, park_y, toRadians(270)));
         ArrayList<Path> paths = new ArrayList<>();
         for (int i = 1; i< poses.size(); i++) {
             Path path = new Path(new BezierLine(poses.get(i - 1), poses.get(i)));
@@ -79,22 +66,19 @@ public class Auto12 extends LinearOpMode {
         shooter.setSubRange(min(direction*90.0, 0.0), max(direction*90.0, 0.0));
         transferIntake = new TransferIntake(hardwareMap);
         waitForStart();
-        transferIntake.prepShooter();
         shooter.turnOnShooter();
-        follow(paths.get(0));
-        shoot();
         for (int i = 0; i<attempt; i++) {
+            transferIntake.prepShooter();
+            follow(paths.get(i*3));
+            shoot();
             follow(paths.get(i*3+1));
             transferIntake.intake(1.0);
             follow(paths.get(i*3+2));
             transferIntake.intake(0.0);
-            if (i != 2) {
-                transferIntake.prepShooter();
-                follow(paths.get(i*3+3));
-                shoot();
-            }
         }
-        //follow(paths.get(10));
+        transferIntake.prepShooter();
+        follow(paths.get(paths.size()-1));
+        shoot();
     }
     private void follow(Path path) {
         timer.reset();
