@@ -39,6 +39,13 @@ public class Auto12 extends LinearOpMode {
         this.tagID = tagID;
         this.attempt = numToAttempt;
     }
+    private Pose curPos;
+    private void move(Pose newPos){
+        Path path = new Path(new BezierLine(curPos,newPos));
+        path.setLinearHeadingInterpolation(curPos.getHeading(), newPos.getHeading());
+        follow(path);
+        curPos=newPos;
+    }
     @Override
     public void runOpMode() {
         double[][] intakePositions = new double[][] {
@@ -46,6 +53,33 @@ public class Auto12 extends LinearOpMode {
                 {60.0-15.0, 20.0, toRadians(90 - 90 * direction)},
                 {36.0-15.0, 20.0, toRadians(90 - 90 * direction)}
         };
+        curPos = new Pose(offset - direction*(24+ROBOT_WIDTH_CM/(2.54*2)),144.0-ROBOT_LENGTH_CM/(2.54), toRadians(270));
+        follower = Constants.createFollower(hardwareMap);
+        follower.setStartingPose(curPos);
+        shooter = new Shooter(hardwareMap, tagID);
+        shooter.setSubRange(min(direction*90.0, 0.0), max(direction*90.0, 0.0));
+        transferIntake = new TransferIntake(hardwareMap);
+        waitForStart();
+        shooter.turnOnShooter();
+        Pose shootPos=new Pose(offset - direction * 60.0, shooter_y, toRadians(270));
+        Pose parkPos=new Pose(offset - direction * 60.0, park_y, toRadians(270));
+        move(shootPos);
+        shoot();
+        for (int i=0;i<attempt;i++){
+            move(new Pose(offset - direction * 60.0, intakePositions[i][0], intakePositions[i][2]));
+            transferIntake.intake(1.0);
+            move(new Pose(offset - direction * intakePositions[i][1], intakePositions[i][0],intakePositions[i][2]));
+            transferIntake.intake(0.0);
+            if (i==attempt-1){
+                move(parkPos);
+            }
+            else{
+                move(shootPos);
+            }
+            shoot();
+        }
+        move(parkPos);
+        /*
         ArrayList<Pose> poses = new ArrayList<>();
         poses.add(new Pose(offset - direction*(24+ROBOT_WIDTH_CM/(2.54*2)),144.0-ROBOT_LENGTH_CM/(2.54), toRadians(270)));
         for (int i = 0; i<attempt; i++) {
@@ -79,6 +113,7 @@ public class Auto12 extends LinearOpMode {
         transferIntake.prepShooter();
         follow(paths.get(paths.size()-1));
         shoot();
+         */
     }
     private void follow(Path path) {
         timer.reset();
