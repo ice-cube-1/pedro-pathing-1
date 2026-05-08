@@ -55,6 +55,7 @@ public class Shooter {
     private double gotoPos = turretMin;
 
     private final int tagID;
+    public boolean paused = false;
 
     public Shooter(HardwareMap hardwareMap, int tagID) {
 
@@ -119,9 +120,7 @@ public class Shooter {
 
     public void moveTurret(double farZoneMultiplier) {
         lookForTag();
-
         switch (turretState) {
-
             case DETECTED:
                 if (timer.milliseconds() > mostRecent + 500) {
                     turretState = TurretState.WRAPPING;
@@ -133,14 +132,12 @@ public class Shooter {
                     }
                 }
                 break;
-
             case WRAPPING:
                 if (timer.milliseconds() < mostRecent + 500) {
                     turretState = TurretState.DETECTED;
                 } else {
                     nextPos = (gotoPos - getTurretAngle() > 0 ? TURRET_STEP*farZoneMultiplier : -TURRET_STEP*farZoneMultiplier)
                             + getTurretAngle();
-
                 }
                 break;
         }
@@ -157,7 +154,15 @@ public class Shooter {
     public void reverseGoto() {
         gotoPos = (gotoPos > 0) ? turretMin : turretMax;
     }
+    public void pauseTurret(){
+        paused = !paused;
+        if (paused) {
+            mostRecent = -1000.0;
+            gotoPos = getTurretAngle();
+            nextPos = getTurretAngle();
+        }
 
+    }
     private double getTurretAngle() {
         return ((turret[0].getPosition() + turret[1].getPosition()) / 2.0)
                 * TURRET_MAX_DEGREES - TURRET_ZERO_DEG;
@@ -196,7 +201,9 @@ public class Shooter {
     public void spin(Boolean far, Boolean shootWithOneEncoder) {
         targetV = getTargetVelocity(far);
         double currentV;
-        if (shootWithOneEncoder) currentV = motors[0].getVelocity();
+        if (shootWithOneEncoder){
+            currentV = motors[0].getVelocity();
+        }
         else {
             currentV = Arrays.stream(motors)
                     .mapToDouble(Wheel::getVelocity)
