@@ -84,11 +84,11 @@ public abstract class Manual extends LinearOpMode {
                 shooter.reverseGoto();
                 dpadTimer.reset();
             }
-            if (gamepad1.x) {
+            if (gamepad1.x && dpadTimer.milliseconds() > 200) {
                 shootFromFar = !shootFromFar;
                 dpadTimer.reset();
             }
-            if (gamepad1.y) { //pause turret movement
+            if (gamepad1.y && dpadTimer.milliseconds() > 200) { //pause turret movement
                 shooter.pauseTurret();
                 dpadTimer.reset();
             }
