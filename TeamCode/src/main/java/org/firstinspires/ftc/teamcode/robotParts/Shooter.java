@@ -82,7 +82,7 @@ public class Shooter {
     }
 
     public boolean canShoot() {
-        return Math.abs(lastAngle) < 4 && turretState == TurretState.DETECTED;
+        return Math.abs(lastAngle) < 4 && turretState == TurretState.DETECTED || paused;
     }
 
     private int getTargetVelocity(Boolean far) {
@@ -141,13 +141,14 @@ public class Shooter {
                 }
                 break;
         }
-
-        if (nextPos >= turretMax) {
-            gotoPos = turretMin;
-        } else if (nextPos <= turretMin) {
-            gotoPos = turretMax;
-        } else {
-            setTurretPos(nextPos);
+        if (!paused) {
+            if (nextPos >= turretMax) {
+                gotoPos = turretMin;
+            } else if (nextPos <= turretMin) {
+                gotoPos = turretMax;
+            } else {
+                setTurretPos(nextPos);
+            }
         }
     }
 
@@ -156,12 +157,6 @@ public class Shooter {
     }
     public void pauseTurret(){
         paused = !paused;
-        if (paused) {
-            mostRecent = -1000.0;
-            gotoPos = getTurretAngle();
-            nextPos = getTurretAngle();
-        }
-
     }
     private double getTurretAngle() {
         return ((turret[0].getPosition() + turret[1].getPosition()) / 2.0)
@@ -198,18 +193,13 @@ public class Shooter {
         motors[1].setPower(0.0);
     }
 
-    public void spin(Boolean far, Boolean shootWithOneEncoder) {
+    public void spin(Boolean far) {
         targetV = getTargetVelocity(far);
-        double currentV;
-        if (shootWithOneEncoder){
-            currentV = motors[0].getVelocity();
-        }
-        else {
-            currentV = Arrays.stream(motors)
-                    .mapToDouble(Wheel::getVelocity)
-                    .average()
-                    .orElse(0.0);
-        }
+        double currentV = Arrays.stream(motors)
+                .filter(i -> i.getVelocity() != 0)
+                .mapToDouble(Wheel::getVelocity)
+                .average()
+                .orElse(0.0);
         double errorV = targetV - currentV;
 
         power = Math.max(0.0,

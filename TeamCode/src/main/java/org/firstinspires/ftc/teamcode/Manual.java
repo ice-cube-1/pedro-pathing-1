@@ -36,7 +36,6 @@ public abstract class Manual extends LinearOpMode {
     private final ElapsedTime dpadTimer = new ElapsedTime();
     private final ElapsedTime end = new ElapsedTime();
     private boolean shootFromFar = false;
-    private boolean shootWithOneEncoder = false;
 
     public Manual(double orientation, int tag) {
         this.orientation = orientation;
@@ -85,20 +84,12 @@ public abstract class Manual extends LinearOpMode {
                 shooter.reverseGoto();
                 dpadTimer.reset();
             }
-            if (gamepad1.b && dpadTimer.milliseconds() > 200) {
-                shootWithOneEncoder = !shootWithOneEncoder;
-                dpadTimer.reset();
-            }
             if (gamepad1.x) {
                 shootFromFar = !shootFromFar;
                 dpadTimer.reset();
             }
             if (gamepad1.y) { //pause turret movement
-
                 shooter.pauseTurret();
-                if (!shooter.paused) {
-                    shooter.moveTurret(1.0);
-                }
                 dpadTimer.reset();
             }
             if (robotState == RobotState.INTAKE) {
@@ -117,9 +108,8 @@ public abstract class Manual extends LinearOpMode {
             }
             transferIntake.update();
             shooter.moveTurret(shootFromFar ? FAR_ZONE_MULTIPLIER : 1.0);
-            telemetry.addData("shooting with one encoder",shootWithOneEncoder);
             telemetry.addData("shooting from far:", shootFromFar);
-            shooter.spin(shootFromFar, shootWithOneEncoder);
+            shooter.spin(shootFromFar);
             telemetry.addLine(shooter.getData());
             telemetry.addLine(transferIntake.getData());
             telemetry.update();

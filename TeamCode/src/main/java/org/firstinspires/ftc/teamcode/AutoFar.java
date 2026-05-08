@@ -93,7 +93,7 @@ public class AutoFar extends LinearOpMode {
     }
     private void updateAll() {
         shooter.moveTurret(1.0);
-        shooter.spin(true, false);
+        shooter.spin(true);
         transferIntake.update();
         follower.update();
         telemetry.addLine(shooter.getData());

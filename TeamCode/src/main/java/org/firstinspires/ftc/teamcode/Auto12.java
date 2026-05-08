@@ -18,7 +18,6 @@ import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.teamcode.robotParts.Shooter;
 import org.firstinspires.ftc.teamcode.robotParts.TransferIntake;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 
 @Configurable
@@ -79,41 +78,6 @@ public class Auto12 extends LinearOpMode {
             shoot();
         }
         move(parkPos);
-        /*
-        ArrayList<Pose> poses = new ArrayList<>();
-        poses.add(new Pose(offset - direction*(24+ROBOT_WIDTH_CM/(2.54*2)),144.0-ROBOT_LENGTH_CM/(2.54), toRadians(270)));
-        for (int i = 0; i<attempt; i++) {
-            poses.add(new Pose(offset - direction * 60.0, shooter_y, toRadians(270))); // SHOOT AFTER THIS
-            poses.add(new Pose(offset - direction * 60.0, intakePositions[i][0], intakePositions[i][2])); // INTAKE AFTER THIS
-            poses.add(new Pose(offset - direction * intakePositions[i][1], intakePositions[i][0],intakePositions[i][2])); // STOP INTAKING 1 HERE
-        }
-        poses.add(new Pose(offset - direction * 60.0, park_y, toRadians(270)));
-        ArrayList<Path> paths = new ArrayList<>();
-        for (int i = 1; i< poses.size(); i++) {
-            Path path = new Path(new BezierLine(poses.get(i - 1), poses.get(i)));
-            path.setLinearHeadingInterpolation(poses.get(i - 1).getHeading(), poses.get(i).getHeading());
-            paths.add(path);
-        }
-        follower = Constants.createFollower(hardwareMap);
-        follower.setStartingPose(poses.get(0));
-        shooter = new Shooter(hardwareMap, tagID);
-        shooter.setSubRange(min(direction*90.0, 0.0), max(direction*90.0, 0.0));
-        transferIntake = new TransferIntake(hardwareMap);
-        waitForStart();
-        shooter.turnOnShooter();
-        for (int i = 0; i<attempt; i++) {
-            transferIntake.prepShooter();
-            follow(paths.get(i*3));
-            shoot();
-            follow(paths.get(i*3+1));
-            transferIntake.intake(1.0);
-            follow(paths.get(i*3+2));
-            transferIntake.intake(0.0);
-        }
-        transferIntake.prepShooter();
-        follow(paths.get(paths.size()-1));
-        shoot();
-         */
     }
     private void follow(Path path) {
         timer.reset();
@@ -135,7 +99,7 @@ public class Auto12 extends LinearOpMode {
     }
     private void updateAll() {
         shooter.moveTurret(1.0);
-        shooter.spin(false, false);
+        shooter.spin(false);
         transferIntake.update();
         follower.update();
         telemetry.addLine(shooter.getData());
@@ -144,4 +108,3 @@ public class Auto12 extends LinearOpMode {
         telemetry.update();
     }
 }
-// test add code
