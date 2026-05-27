@@ -55,7 +55,7 @@ public class Auto12 extends LinearOpMode {
         curPos = new Pose(alliance.mirrorX(24+ROBOT_WIDTH_CM/(2.54*2)),144.0-ROBOT_LENGTH_CM/(2.54), toRadians(270));
         follower = Constants.createFollower(hardwareMap);
         follower.setStartingPose(curPos);
-        shooter = new Shooter(hardwareMap, alliance.tagID);
+        shooter = new Shooter(hardwareMap, alliance.tagID, RobotConstants.ShootMode.NEAR);
         shooter.setSubRange(min(alliance.direction*90.0, 0.0), max(alliance.direction*90.0, 0.0));
         transferIntake = new TransferIntake(hardwareMap);
         waitForStart();
@@ -94,8 +94,8 @@ public class Auto12 extends LinearOpMode {
         transferIntake.shoot(false);
     }
     private void updateAll() {
-        shooter.moveTurret(1.0);
-        shooter.spin(false);
+        shooter.moveTurret();
+        shooter.spin();
         transferIntake.update();
         follower.update();
         telemetry.addLine(shooter.getData());

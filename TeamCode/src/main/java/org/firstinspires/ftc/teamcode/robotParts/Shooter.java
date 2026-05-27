@@ -25,53 +25,38 @@ public class Shooter {
     }
 
     private final Limelight3A limelight;
-
     private final ServoImplEx[] turret = new ServoImplEx[2];
     private final Servo hoodAngle;
-
     private final Wheel[] motors;
-
     private double lastDist = 0.0;
     private double lastAngle = 0.0;
-
     private double power = 0.0;
     private double mostRecent = -1000.0;
-
     private final ElapsedTime timer = new ElapsedTime();
-
     private TurretState turretState = TurretState.WRAPPING;
-
     private boolean shooterOn = false;
     private int targetV = SHOOTER_IDLE_VELOCITY;
-
     private double nextPos = 0.0;
-
     public boolean atSpeed = true;
     public double distanceOffset = 0.0;
-
     private double turretMin = -TURRET_ZERO_DEG;
     private double turretMax = TURRET_MAX_DEGREES - TURRET_ZERO_DEG;
-
     private double gotoPos = turretMin;
-
     private final int tagID;
     public boolean paused = false;
+    public ShootMode shootMode;
 
-    public Shooter(HardwareMap hardwareMap, int tagID) {
-
+    public Shooter(HardwareMap hardwareMap, int tagID, ShootMode shootMode) {
         this.tagID = tagID;
-
+        this.shootMode = shootMode;
         limelight = hardwareMap.get(Limelight3A.class, "limelight");
         limelight.setPollRateHz(100);
         limelight.start();
         limelight.pipelineSwitch(0);
-
         turret[0] = hardwareMap.get(ServoImplEx.class, "t1");
         turret[0].setPosition(0.5);
-
         turret[1] = hardwareMap.get(ServoImplEx.class, "t2");
         turret[1].setPosition(0.5);
-
         hoodAngle = hardwareMap.get(Servo.class, "hood");
         hoodAngle.setPosition(HOOD_ANGLE);
 
@@ -85,14 +70,10 @@ public class Shooter {
         return Math.abs(lastAngle) < 4 && turretState == TurretState.DETECTED || paused;
     }
 
-    private int getTargetVelocity(Boolean far) {
-        if (far) hoodAngle.setPosition(0.85);
-        else hoodAngle.setPosition(1.0);
+    private int getTargetVelocity() {
+        hoodAngle.setPosition(shootMode.hoodPos);
         if (shooterOn) {
-            if (far) {
-                return (int) (177.92 * (lastDist+0.8) + 937.31);
-            }
-            return (int) (177.92 * lastDist + 937.31);
+            return (int) (177.92 * (lastDist+ shootMode.distanceOffset) + 937.31);
         } else {
             return SHOOTER_IDLE_VELOCITY;
         }
@@ -118,26 +99,21 @@ public class Shooter {
         }
     }
 
-    public void moveTurret(double farZoneMultiplier) {
+    public void moveTurret() {
         lookForTag();
         switch (turretState) {
             case DETECTED:
                 if (timer.milliseconds() > mostRecent + 500) {
                     turretState = TurretState.WRAPPING;
                 } else if (Math.abs(lastAngle) > 1.0) {
-                    if (farZoneMultiplier == 1) {
-                        nextPos = lastAngle * 0.02 + getTurretAngle();
-                    } else {
-                        nextPos = lastAngle * 0.015 + getTurretAngle();
-                    }
+                    nextPos = lastAngle * shootMode.detectedKP + getTurretAngle();
                 }
                 break;
             case WRAPPING:
                 if (timer.milliseconds() < mostRecent + 500) {
                     turretState = TurretState.DETECTED;
                 } else {
-                    nextPos = (gotoPos - getTurretAngle() > 0 ? TURRET_STEP*farZoneMultiplier : -TURRET_STEP*farZoneMultiplier)
-                            + getTurretAngle();
+                    nextPos = (gotoPos - getTurretAngle() > 0 ? shootMode.wrappingStep : -shootMode.wrappingStep) + getTurretAngle();
                 }
                 break;
         }
@@ -159,8 +135,7 @@ public class Shooter {
         paused = !paused;
     }
     private double getTurretAngle() {
-        return ((turret[0].getPosition() + turret[1].getPosition()) / 2.0)
-                * TURRET_MAX_DEGREES - TURRET_ZERO_DEG;
+        return ((turret[0].getPosition() + turret[1].getPosition()) / 2.0) * TURRET_MAX_DEGREES - TURRET_ZERO_DEG;
     }
 
     private void setTurretPos(double pos) {
@@ -176,38 +151,36 @@ public class Shooter {
         turretMax = max;
     }
 
+    public void toggleFromFar() {
+        if (shootMode == ShootMode.NEAR) { shootMode = ShootMode.FAR; }
+        else shootMode = ShootMode.NEAR;
+    }
+
     public void turnOnShooter() {
         targetV = (int) Arrays.stream(motors)
                 .mapToDouble(Wheel::getVelocity)
                 .average()
                 .orElse(0.0);
-
         shooterOn = true;
     }
 
     public void turnOffShooter() {
         shooterOn = false;
         targetV = SHOOTER_IDLE_VELOCITY;
-
         motors[0].setPower(0.0);
         motors[1].setPower(0.0);
     }
 
-    public void spin(Boolean far) {
-        targetV = getTargetVelocity(far);
+    public void spin() {
+        targetV = getTargetVelocity();
         double currentV = Arrays.stream(motors)
                 .filter(i -> i.getVelocity() != 0)
                 .mapToDouble(Wheel::getVelocity)
                 .average()
                 .orElse(0.0);
         double errorV = targetV - currentV;
-
-        power = Math.max(0.0,
-                Math.min(1.0,
-                        KP_SHOOTER * errorV + targetV * K_FF + KFF_INTERCEPT));
-
+        power = Math.max(0.0, Math.min(1.0, KP_SHOOTER * errorV + targetV * K_FF + KFF_INTERCEPT));
         for (Wheel m : motors) {m.setPower(power);}
-
         atSpeed = Math.abs(errorV) < 40;
     }
 

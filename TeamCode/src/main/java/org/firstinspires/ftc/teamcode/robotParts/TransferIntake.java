@@ -45,9 +45,7 @@ public class TransferIntake {
     }
 
     public String getData() {
-        return "intake: " + intake.getPower() +
-                ", transfer: " + transfer.getPower() +
-                ", state: " + intakeState;
+        return "intake: " + intake.getPower() + ", transfer: " + transfer.getPower() + ", state: " + intakeState;
     }
 
     public void intake(Double i) {intakePower = i;}

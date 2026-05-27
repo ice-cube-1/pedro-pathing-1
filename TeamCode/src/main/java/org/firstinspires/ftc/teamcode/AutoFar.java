@@ -52,7 +52,7 @@ public class AutoFar extends LinearOpMode {
         }
         follower = Constants.createFollower(hardwareMap);
         follower.setStartingPose(poses.get(0));
-        shooter = new Shooter(hardwareMap, alliance.tagID);
+        shooter = new Shooter(hardwareMap, alliance.tagID, RobotConstants.ShootMode.FAR);
         shooter.setSubRange(min(alliance.direction*90.0, 0.0), max(alliance.direction*90.0, 0.0));
         transferIntake = new TransferIntake(hardwareMap);
         waitForStart();
@@ -89,8 +89,8 @@ public class AutoFar extends LinearOpMode {
         transferIntake.shoot(false);
     }
     private void updateAll() {
-        shooter.moveTurret(1.0);
-        shooter.spin(true);
+        shooter.moveTurret();
+        shooter.spin();
         transferIntake.update();
         follower.update();
         telemetry.addLine(shooter.getData());

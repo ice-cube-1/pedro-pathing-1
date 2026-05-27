@@ -1,7 +1,6 @@
 package org.firstinspires.ftc.teamcode;
 
 import static org.firstinspires.ftc.teamcode.pedroPathing.Constants.createFollower;
-import static org.firstinspires.ftc.teamcode.robotParts.RobotConstants.FAR_ZONE_MULTIPLIER;
 import static org.firstinspires.ftc.teamcode.robotParts.RobotConstants.MANUAL_MULTIPLIER;
 
 import com.pedropathing.follower.Follower;
@@ -9,6 +8,7 @@ import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.teamcode.robotParts.RobotConstants;
 import org.firstinspires.ftc.teamcode.robotParts.Shooter;
 import org.firstinspires.ftc.teamcode.robotParts.TransferIntake;
 
@@ -35,7 +35,6 @@ public abstract class Manual extends LinearOpMode {
     private final ElapsedTime atSpeed = new ElapsedTime();
     private final ElapsedTime dpadTimer = new ElapsedTime();
     private final ElapsedTime end = new ElapsedTime();
-    private boolean shootFromFar = false;
 
     public Manual(double orientation, int tag) {
         this.orientation = orientation;
@@ -48,7 +47,7 @@ public abstract class Manual extends LinearOpMode {
         follower.setStartingPose(new Pose(0,0,orientation));
         waitForStart();
         follower.startTeleopDrive();
-        shooter = new Shooter(hardwareMap, tag);
+        shooter = new Shooter(hardwareMap, tag, RobotConstants.ShootMode.NEAR);
         transferIntake = new TransferIntake(hardwareMap);
         end.reset();
         while (opModeIsActive()) {
@@ -85,7 +84,7 @@ public abstract class Manual extends LinearOpMode {
                 dpadTimer.reset();
             }
             if (gamepad1.x && dpadTimer.milliseconds() > 200) {
-                shootFromFar = !shootFromFar;
+                shooter.toggleFromFar();
                 dpadTimer.reset();
             }
             if (gamepad1.y && dpadTimer.milliseconds() > 200) { //pause turret movement
@@ -107,9 +106,9 @@ public abstract class Manual extends LinearOpMode {
                 transferIntake.shoot(true);
             }
             transferIntake.update();
-            shooter.moveTurret(shootFromFar ? FAR_ZONE_MULTIPLIER : 1.0);
-            telemetry.addData("shooting from far:", shootFromFar);
-            shooter.spin(shootFromFar);
+            shooter.moveTurret();
+            telemetry.addData("shooting from far:", shooter.shootMode);
+            shooter.spin();
             telemetry.addLine(shooter.getData());
             telemetry.addLine(transferIntake.getData());
             telemetry.update();

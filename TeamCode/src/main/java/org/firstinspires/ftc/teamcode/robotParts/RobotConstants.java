@@ -48,4 +48,18 @@ public class RobotConstants {
         public double mirrorAngle(double angle) { return angle * (1 - direction); }
         public double mirrorX(double x) { return offset - direction - x; }
     }
+    public enum ShootMode {
+        NEAR(0.02,TURRET_STEP, 0.0,1.0),
+        FAR(0.015, TURRET_STEP * FAR_ZONE_MULTIPLIER, 0.8, 0.85);
+        final double detectedKP;
+        final double wrappingStep;
+        final double distanceOffset;
+        final double hoodPos;
+        ShootMode(double detectedKP, double wrappingStep, double distanceOffset, double hoodPos) {
+            this.detectedKP = detectedKP;
+            this.wrappingStep = wrappingStep;
+            this.distanceOffset = distanceOffset;
+            this.hoodPos = hoodPos;
+        }
+    }
 }
