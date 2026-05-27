@@ -15,6 +15,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
+import org.firstinspires.ftc.teamcode.robotParts.RobotConstants;
 import org.firstinspires.ftc.teamcode.robotParts.Shooter;
 import org.firstinspires.ftc.teamcode.robotParts.TransferIntake;
 
@@ -26,19 +27,16 @@ public class Auto12 extends LinearOpMode {
     private Shooter shooter;
     private TransferIntake transferIntake;
     private final ElapsedTime timer = new ElapsedTime();
-    private final double offset;
-    private final double direction;
-    private final int tagID;
+    private final RobotConstants.Alliance alliance;
     private final int attempt;
     public static double shooter_y = 80.0;
     public static double park_y = 105.0 - 12.0;
-    public Auto12(double offset, double direction, int numToAttempt, int tagID) {
-        this.offset = offset;
-        this.direction = direction;
-        this.tagID = tagID;
+    public Auto12(RobotConstants.Alliance alliance, int numToAttempt) {
+        this.alliance = alliance;
         this.attempt = numToAttempt;
     }
     private Pose curPos;
+
     private void move(Pose newPos){
         Path path = new Path(new BezierLine(curPos,newPos));
         path.setLinearHeadingInterpolation(curPos.getHeading(), newPos.getHeading());
@@ -48,33 +46,31 @@ public class Auto12 extends LinearOpMode {
     @Override
     public void runOpMode() {
         double[][] intakePositions = new double[][] {
-                {84.0-15.0, 24.0, toRadians(90 * (1 - direction))},
-                {60.0-15.0, 20.0, toRadians(90 - 90 * direction)},
-                {36.0-15.0, 20.0, toRadians(90 - 90 * direction)}
+                {alliance.mirrorX(84.0-15.0), 24.0, toRadians(alliance.mirrorAngle(90))},
+                {alliance.mirrorX(60.0-15.0), 20.0, toRadians(alliance.mirrorAngle(90))},
+                {alliance.mirrorX(36.0-15.0), 20.0, toRadians(alliance.mirrorAngle(90))}
         };
-        curPos = new Pose(offset - direction*(24+ROBOT_WIDTH_CM/(2.54*2)),144.0-ROBOT_LENGTH_CM/(2.54), toRadians(270));
+        Pose shootPos = new Pose(alliance.mirrorX(60.0), shooter_y, toRadians(270));
+        Pose parkPos = new Pose(alliance.mirrorX(60.0), park_y, toRadians(270));
+        curPos = new Pose(alliance.mirrorX(24+ROBOT_WIDTH_CM/(2.54*2)),144.0-ROBOT_LENGTH_CM/(2.54), toRadians(270));
         follower = Constants.createFollower(hardwareMap);
         follower.setStartingPose(curPos);
-        shooter = new Shooter(hardwareMap, tagID);
-        shooter.setSubRange(min(direction*90.0, 0.0), max(direction*90.0, 0.0));
+        shooter = new Shooter(hardwareMap, alliance.tagID);
+        shooter.setSubRange(min(alliance.direction*90.0, 0.0), max(alliance.direction*90.0, 0.0));
         transferIntake = new TransferIntake(hardwareMap);
         waitForStart();
         shooter.turnOnShooter();
-        Pose shootPos=new Pose(offset - direction * 60.0, shooter_y, toRadians(270));
-        Pose parkPos=new Pose(offset - direction * 60.0, park_y, toRadians(270));
+        transferIntake.prepShooter();
         move(shootPos);
         shoot();
         for (int i=0;i<attempt;i++){
-            move(new Pose(offset - direction * 60.0, intakePositions[i][0], intakePositions[i][2]));
+            move(new Pose(alliance.mirrorX(60.0), intakePositions[i][0], intakePositions[i][2]));
             transferIntake.intake(1.0);
-            move(new Pose(offset - direction * intakePositions[i][1], intakePositions[i][0],intakePositions[i][2]));
+            move(new Pose(intakePositions[i][1], intakePositions[i][0],intakePositions[i][2]));
             transferIntake.intake(0.0);
-            if (i==attempt-1){
-                move(parkPos);
-            }
-            else{
-                move(shootPos);
-            }
+            transferIntake.prepShooter();
+            if (i == attempt-1) { move(parkPos); }
+            else { move(shootPos); }
             shoot();
         }
         move(parkPos);

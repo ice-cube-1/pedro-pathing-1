@@ -33,4 +33,19 @@ public class RobotConstants {
 
     public static double OFFSET = 0.3;
     public static double FAR_ZONE_MULTIPLIER = 0.5;
+
+    public enum Alliance {
+        RED(144.0, 1.0, 24),
+        BLUE(0.0, -1.0, 20);
+        private final double offset;
+        public final double direction;
+        public final int tagID;
+        Alliance(double offset, double direction, int tagID) {
+            this.offset = offset;
+            this.direction = direction;
+            this.tagID = tagID;
+        }
+        public double mirrorAngle(double angle) { return angle * (1 - direction); }
+        public double mirrorX(double x) { return offset - direction - x; }
+    }
 }

@@ -14,6 +14,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
+import org.firstinspires.ftc.teamcode.robotParts.RobotConstants;
 import org.firstinspires.ftc.teamcode.robotParts.Shooter;
 import org.firstinspires.ftc.teamcode.robotParts.TransferIntake;
 
@@ -25,28 +26,24 @@ public class AutoFar extends LinearOpMode {
     private Shooter shooter;
     private TransferIntake transferIntake;
     private final ElapsedTime timer = new ElapsedTime();
-    private final double offset;
-    private final double direction;
-    private final int tagID;
+    private final RobotConstants.Alliance alliance;
     private final int attemptCount;
 
-    public AutoFar(double offset, double direction, int tagID, int attemptCount) {
-        this.offset = offset;
-        this.direction = direction;
-        this.tagID = tagID;
+    public AutoFar(RobotConstants.Alliance alliance, int attemptCount) {
         this.attemptCount = attemptCount;
+        this.alliance = alliance;
     }
     public void runOpMode()  {
         ArrayList<Pose> poses = new ArrayList<>();
-        poses.add(new Pose(offset - direction*(48+ROBOT_WIDTH_CM/(2.54*2)), ROBOT_LENGTH_CM/(2.54),toRadians(270)));
-        poses.add(new Pose(offset - direction*(48+ROBOT_WIDTH_CM/(2.54*2)),ROBOT_LENGTH_CM/(2.54)+6, toRadians(270))); // shoot here
-        poses.add(new Pose(offset-direction*60.0,84.0-24.0-20.0,toRadians(90 - 90 * direction))); // start intaking here
-        poses.add(new Pose(offset-direction*20.0, 84.0-24.0-20.0, toRadians(90 - 90*direction))); // stop intaking here
-        poses.add(new Pose(offset - direction*(48+ROBOT_WIDTH_CM/(2.54*2)), ROBOT_LENGTH_CM/(2.54)+6,toRadians(270))); // shoot here
-        poses.add(new Pose(offset-direction*9.0,84.0-24.0-6.0, toRadians(270)));
-        poses.add(new Pose(offset-direction*9.0,ROBOT_LENGTH_CM/(2.54), toRadians(270)));
-        poses.add(new Pose(offset - direction*(48+ROBOT_WIDTH_CM/(2.54*2)),ROBOT_LENGTH_CM/(2.54)+6, toRadians(270))); // shoot here
-        poses.add(new Pose(offset - direction*(48+ROBOT_WIDTH_CM/(2.54*2)), ROBOT_LENGTH_CM/(2.54)+24,toRadians(270))); // park
+        poses.add(new Pose(alliance.mirrorX(48+ROBOT_WIDTH_CM/(2.54*2)), ROBOT_LENGTH_CM/(2.54),toRadians(270)));
+        poses.add(new Pose(alliance.mirrorX(48+ROBOT_WIDTH_CM/(2.54*2)),ROBOT_LENGTH_CM/(2.54)+6, toRadians(270))); // shoot here
+        poses.add(new Pose(alliance.mirrorX(60.0),84.0-24.0-20.0,toRadians(alliance.mirrorAngle(90)))); // start intaking here
+        poses.add(new Pose(alliance.mirrorX(20.0), 84.0-24.0-20.0, toRadians(alliance.mirrorAngle(90)))); // stop intaking here
+        poses.add(new Pose(alliance.mirrorX(48+ROBOT_WIDTH_CM/(2.54*2)), ROBOT_LENGTH_CM/(2.54)+6,toRadians(270))); // shoot here
+        poses.add(new Pose(alliance.mirrorX(9.0),84.0-24.0-6.0, toRadians(270)));
+        poses.add(new Pose(alliance.mirrorX(9.0),ROBOT_LENGTH_CM/(2.54), toRadians(270)));
+        poses.add(new Pose(alliance.mirrorX(48+ROBOT_WIDTH_CM/(2.54*2)),ROBOT_LENGTH_CM/(2.54)+6, toRadians(270))); // shoot here
+        poses.add(new Pose(alliance.mirrorX(48+ROBOT_WIDTH_CM/(2.54*2)), ROBOT_LENGTH_CM/(2.54)+24,toRadians(270))); // park
         ArrayList<Path> paths = new ArrayList<>();
         for (int i = 1; i< poses.size(); i++) {
             Path path = new Path(new BezierLine(poses.get(i - 1), poses.get(i)));
@@ -55,8 +52,8 @@ public class AutoFar extends LinearOpMode {
         }
         follower = Constants.createFollower(hardwareMap);
         follower.setStartingPose(poses.get(0));
-        shooter = new Shooter(hardwareMap, tagID);
-        shooter.setSubRange(min(direction*90.0, 0.0), max(direction*90.0, 0.0));
+        shooter = new Shooter(hardwareMap, alliance.tagID);
+        shooter.setSubRange(min(alliance.direction*90.0, 0.0), max(alliance.direction*90.0, 0.0));
         transferIntake = new TransferIntake(hardwareMap);
         waitForStart();
         transferIntake.prepShooter();
