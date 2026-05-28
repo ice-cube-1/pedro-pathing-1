@@ -106,7 +106,7 @@ public abstract class Manual extends LinearOpMode {
                 transferIntake.shoot(true);
             }
             transferIntake.update();
-            shooter.moveTurret();
+            shooter.moveTurret(follower);
             telemetry.addData("shooting from far:", shooter.shootMode);
             shooter.spin();
             telemetry.addLine(shooter.getData());

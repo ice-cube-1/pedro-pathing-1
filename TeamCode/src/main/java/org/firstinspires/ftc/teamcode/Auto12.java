@@ -71,6 +71,7 @@ public class Auto12 extends LinearOpMode {
             transferIntake.prepShooter();
             if (i == attempt-1) { move(parkPos); }
             else { move(shootPos); }
+            shooter.relocaliseLL();
             shoot();
         }
         move(parkPos);
@@ -94,7 +95,7 @@ public class Auto12 extends LinearOpMode {
         transferIntake.shoot(false);
     }
     private void updateAll() {
-        shooter.moveTurret();
+        shooter.moveTurret(follower);
         shooter.spin();
         transferIntake.update();
         follower.update();

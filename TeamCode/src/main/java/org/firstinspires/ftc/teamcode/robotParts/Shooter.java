@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.robotParts;
 
+import com.pedropathing.follower.Follower;
+import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
@@ -64,9 +66,9 @@ public class Shooter {
             return SHOOTER_IDLE_VELOCITY;
         }
     }
-
-    public void moveTurret() {
-        limelight.update();
+    public void relocaliseLL() { limelight.tryRelocalise = true; }
+    public void moveTurret(Follower follower) {
+        limelight.update(follower);
         switch (turretState) {
             case DETECTED:
                 if (timer.milliseconds() > limelight.mostRecent + 500) {
