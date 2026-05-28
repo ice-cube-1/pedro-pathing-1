@@ -3,6 +3,8 @@ package org.firstinspires.ftc.teamcode.robotParts;
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.LLResultTypes;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
@@ -27,7 +29,7 @@ public class Shooter {
     private final Limelight3A limelight;
     private final ServoImplEx[] turret = new ServoImplEx[2];
     private final Servo hoodAngle;
-    private final Wheel[] motors;
+    private final DcMotorEx[] motors;
     private double lastDist = 0.0;
     private double lastAngle = 0.0;
     private double power = 0.0;
@@ -60,9 +62,9 @@ public class Shooter {
         hoodAngle = hardwareMap.get(Servo.class, "hood");
         hoodAngle.setPosition(HOOD_ANGLE);
 
-        motors = new Wheel[]{
-                new Wheel("m1", hardwareMap, DcMotorSimple.Direction.REVERSE),
-                new Wheel("m2", hardwareMap, DcMotorSimple.Direction.FORWARD)
+        motors = new DcMotorEx[]{
+                init_motor("m1", hardwareMap, DcMotorSimple.Direction.REVERSE),
+                init_motor("m2", hardwareMap, DcMotorSimple.Direction.FORWARD)
         };
     }
 
@@ -73,7 +75,7 @@ public class Shooter {
     private int getTargetVelocity() {
         hoodAngle.setPosition(shootMode.hoodPos);
         if (shooterOn) {
-            return (int) (177.92 * (lastDist+ shootMode.distanceOffset) + 937.31);
+            return (int) (177.92 * (lastDist + shootMode.distanceOffset) + 937.31);
         } else {
             return SHOOTER_IDLE_VELOCITY;
         }
@@ -81,10 +83,8 @@ public class Shooter {
 
     private void lookForTag() {
         LLResult result = limelight.getLatestResult();
-
         if (result == null) return;
         if (!result.isValid()) return;
-
         for (LLResultTypes.FiducialResult tag : result.getFiducialResults()) {
             if (tag.getFiducialId() == tagID) {
                 mostRecent = timer.milliseconds() - result.getStaleness();
@@ -128,12 +128,8 @@ public class Shooter {
         }
     }
 
-    public void reverseGoto() {
-        gotoPos = (gotoPos > 0) ? turretMin : turretMax;
-    }
-    public void pauseTurret(){
-        paused = !paused;
-    }
+    public void reverseGoto() { gotoPos = (gotoPos > 0) ? turretMin : turretMax; }
+    public void pauseTurret(){ paused = !paused; }
     private double getTurretAngle() {
         return ((turret[0].getPosition() + turret[1].getPosition()) / 2.0) * TURRET_MAX_DEGREES - TURRET_ZERO_DEG;
     }
@@ -158,7 +154,8 @@ public class Shooter {
 
     public void turnOnShooter() {
         targetV = (int) Arrays.stream(motors)
-                .mapToDouble(Wheel::getVelocity)
+                .filter(i -> i.getVelocity() != 0)
+                .mapToDouble(DcMotorEx::getVelocity)
                 .average()
                 .orElse(0.0);
         shooterOn = true;
@@ -175,12 +172,12 @@ public class Shooter {
         targetV = getTargetVelocity();
         double currentV = Arrays.stream(motors)
                 .filter(i -> i.getVelocity() != 0)
-                .mapToDouble(Wheel::getVelocity)
+                .mapToDouble(DcMotorEx::getVelocity)
                 .average()
                 .orElse(0.0);
         double errorV = targetV - currentV;
         power = Math.max(0.0, Math.min(1.0, KP_SHOOTER * errorV + targetV * K_FF + KFF_INTERCEPT));
-        for (Wheel m : motors) {m.setPower(power);}
+        for (DcMotorEx m : motors) { m.setPower(power); }
         atSpeed = Math.abs(errorV) < 40;
     }
 
@@ -195,5 +192,14 @@ public class Shooter {
                 "actually going at " +
                 motors[0].getVelocity() + ", " + motors[1].getVelocity() + "\n" +
                 "OFFSET - " + distanceOffset + " m\nservo position "+hoodAngle.getPosition();
+    }
+
+    public DcMotorEx init_motor(String name, HardwareMap hardwareMap, DcMotorSimple.Direction direction) {
+        DcMotorEx drive = hardwareMap.get(DcMotorEx.class, name);
+        drive.setDirection(direction);
+        drive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        drive.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        drive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        return drive;
     }
 }
