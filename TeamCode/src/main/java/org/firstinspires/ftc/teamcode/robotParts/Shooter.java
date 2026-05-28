@@ -1,8 +1,5 @@
 package org.firstinspires.ftc.teamcode.robotParts;
 
-import com.qualcomm.hardware.limelightvision.LLResult;
-import com.qualcomm.hardware.limelightvision.LLResultTypes;
-import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
@@ -10,10 +7,6 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.ServoImplEx;
 import com.qualcomm.robotcore.util.ElapsedTime;
-
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
-import org.firstinspires.ftc.robotcore.external.navigation.Position;
 
 import static org.firstinspires.ftc.teamcode.robotParts.RobotConstants.*;
 
@@ -26,42 +19,33 @@ public class Shooter {
         WRAPPING
     }
 
-    private final Limelight3A limelight;
+    private final Limelight limelight;
     private final ServoImplEx[] turret = new ServoImplEx[2];
     private final Servo hoodAngle;
     private final DcMotorEx[] motors;
-    private double lastDist = 0.0;
-    private double lastAngle = 0.0;
-    private double power = 0.0;
-    private double mostRecent = -1000.0;
     private final ElapsedTime timer = new ElapsedTime();
     private TurretState turretState = TurretState.WRAPPING;
     private boolean shooterOn = false;
     private int targetV = SHOOTER_IDLE_VELOCITY;
+    private double power = 0.0;
     private double nextPos = 0.0;
     public boolean atSpeed = true;
-    public double distanceOffset = 0.0;
     private double turretMin = -TURRET_ZERO_DEG;
     private double turretMax = TURRET_MAX_DEGREES - TURRET_ZERO_DEG;
     private double gotoPos = turretMin;
-    private final int tagID;
     public boolean paused = false;
     public ShootMode shootMode;
+    public float distanceOffset;
 
     public Shooter(HardwareMap hardwareMap, int tagID, ShootMode shootMode) {
-        this.tagID = tagID;
+        limelight = new Limelight(hardwareMap, tagID);
         this.shootMode = shootMode;
-        limelight = hardwareMap.get(Limelight3A.class, "limelight");
-        limelight.setPollRateHz(100);
-        limelight.start();
-        limelight.pipelineSwitch(0);
         turret[0] = hardwareMap.get(ServoImplEx.class, "t1");
         turret[0].setPosition(0.5);
         turret[1] = hardwareMap.get(ServoImplEx.class, "t2");
         turret[1].setPosition(0.5);
         hoodAngle = hardwareMap.get(Servo.class, "hood");
         hoodAngle.setPosition(HOOD_ANGLE);
-
         motors = new DcMotorEx[]{
                 init_motor("m1", hardwareMap, DcMotorSimple.Direction.REVERSE),
                 init_motor("m2", hardwareMap, DcMotorSimple.Direction.FORWARD)
@@ -69,48 +53,30 @@ public class Shooter {
     }
 
     public boolean canShoot() {
-        return Math.abs(lastAngle) < 4 && turretState == TurretState.DETECTED || paused;
+        return Math.abs(limelight.lastAngle) < 4 && turretState == TurretState.DETECTED || paused;
     }
 
     private int getTargetVelocity() {
         hoodAngle.setPosition(shootMode.hoodPos);
         if (shooterOn) {
-            return (int) (177.92 * (lastDist + shootMode.distanceOffset) + 937.31);
+            return (int) (177.92 * (limelight.lastDist + shootMode.distanceOffset + distanceOffset) + 937.31);
         } else {
             return SHOOTER_IDLE_VELOCITY;
         }
     }
 
-    private void lookForTag() {
-        LLResult result = limelight.getLatestResult();
-        if (result == null) return;
-        if (!result.isValid()) return;
-        for (LLResultTypes.FiducialResult tag : result.getFiducialResults()) {
-            if (tag.getFiducialId() == tagID) {
-                mostRecent = timer.milliseconds() - result.getStaleness();
-                Pose3D pose = tag.getTargetPoseCameraSpace();
-                Position pos = pose.getPosition();
-                double yaw = pose.getOrientation().getYaw(AngleUnit.RADIANS);
-                double targetX = pos.x - OFFSET * Math.sin(yaw);
-                double targetZ = pos.z - OFFSET * Math.cos(yaw);
-                lastDist = Math.sqrt(targetX * targetX + targetZ * targetZ) + distanceOffset;
-                lastAngle = Math.toDegrees(Math.atan2(targetX, targetZ));
-            }
-        }
-    }
-
     public void moveTurret() {
-        lookForTag();
+        limelight.update();
         switch (turretState) {
             case DETECTED:
-                if (timer.milliseconds() > mostRecent + 500) {
+                if (timer.milliseconds() > limelight.mostRecent + 500) {
                     turretState = TurretState.WRAPPING;
-                } else if (Math.abs(lastAngle) > 1.0) {
-                    nextPos = lastAngle * shootMode.detectedKP + getTurretAngle();
+                } else if (Math.abs(limelight.lastAngle) > 1.0) {
+                    nextPos = limelight.lastAngle * shootMode.detectedKP + getTurretAngle();
                 }
                 break;
             case WRAPPING:
-                if (timer.milliseconds() < mostRecent + 500) {
+                if (timer.milliseconds() < limelight.mostRecent + 500) {
                     turretState = TurretState.DETECTED;
                 } else {
                     nextPos = (gotoPos - getTurretAngle() > 0 ? shootMode.wrappingStep : -shootMode.wrappingStep) + getTurretAngle();
@@ -135,9 +101,7 @@ public class Shooter {
     }
 
     private void setTurretPos(double pos) {
-        double clamped = Math.min(1.0,
-                Math.max((pos + TURRET_ZERO_DEG) / TURRET_MAX_DEGREES, 0.0));
-
+        double clamped = Math.min(1.0, Math.max((pos + TURRET_ZERO_DEG) / TURRET_MAX_DEGREES, 0.0));
         turret[0].setPosition(clamped);
         turret[1].setPosition(clamped);
     }
@@ -183,15 +147,15 @@ public class Shooter {
 
     public String getData() {
         return "Turret state: " + turretState +
-                ", last tag range = " + lastDist +
-                ", bearing = " + lastAngle + "\n" +
+                ", last tag range = " + limelight.lastDist +
+                ", bearing = " + limelight.lastAngle + "\n" +
                 "Turret current position " + getTurretAngle() +
                 ", going to " + gotoPos + "\n" +
                 "Shooter target: " + targetV +
                 "power " + power + "\n" +
                 "actually going at " +
                 motors[0].getVelocity() + ", " + motors[1].getVelocity() + "\n" +
-                "OFFSET - " + distanceOffset + " m\nservo position "+hoodAngle.getPosition();
+                "OFFSET - " + shootMode.distanceOffset + " m\nservo position "+hoodAngle.getPosition();
     }
 
     public DcMotorEx init_motor(String name, HardwareMap hardwareMap, DcMotorSimple.Direction direction) {
