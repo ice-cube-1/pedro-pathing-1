@@ -19,7 +19,6 @@ import org.firstinspires.ftc.teamcode.robotParts.Shooter;
 import org.firstinspires.ftc.teamcode.robotParts.TransferIntake;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 
 public class AutoFar extends LinearOpMode {
     private Follower follower;
@@ -55,7 +54,7 @@ public class AutoFar extends LinearOpMode {
         shooter = new Shooter(hardwareMap, alliance, RobotConstants.ShootMode.FAR, false); // also hopefully make true
         shooter.setSubRange(min(alliance.direction*90.0, 0.0), max(alliance.direction*90.0, 0.0));
         transferIntake = new TransferIntake(hardwareMap);
-        waitForStart();
+        while (!isStarted() && !isStopRequested()) { updateTelemetry(); }
         transferIntake.prepShooter();
         shooter.turnOnShooter();
         follow(paths.get(0));
@@ -76,6 +75,7 @@ public class AutoFar extends LinearOpMode {
         while (opModeIsActive() && follower.isBusy()) {updateAll();}
     }
     private void shoot() {
+        shooter.relocaliseLL(); // delete if behaving weirdly
         timer.reset();
         while (opModeIsActive() && timer.milliseconds() < 3000) {
             updateAll();
@@ -89,14 +89,18 @@ public class AutoFar extends LinearOpMode {
         transferIntake.shoot(false);
     }
     private void updateAll() {
-        shooter.relocaliseLL(); // again delete to fix pathing
         shooter.moveTurret(follower);
         shooter.spin();
         transferIntake.update();
         follower.update();
-        telemetry.addLine(shooter.getData());
-        telemetry.addLine(transferIntake.getData());
-        telemetry.addLine(Arrays.toString(follower.debug()));
+        updateTelemetry();
+    }
+    public void updateTelemetry() {
+        telemetry.addLine(alliance.toString());
+        telemetry.addLine(shooter.toString());
+        telemetry.addLine(transferIntake.toString());
+        telemetry.addLine(follower.getPose().toString());
+        telemetry.addLine(follower.getPose().toString());
         telemetry.update();
     }
 }

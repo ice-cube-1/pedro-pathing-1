@@ -45,7 +45,7 @@ public abstract class Manual extends LinearOpMode {
     public void runOpMode() {
         follower = createFollower(hardwareMap);
         follower.setStartingPose(new Pose(0,0,orientation));
-        waitForStart();
+        while (!isStarted() && !isStopRequested()) { updateTelemetry(); }
         follower.startTeleopDrive();
         shooter = new Shooter(hardwareMap, alliance, RobotConstants.ShootMode.NEAR, true); // may change this
         transferIntake = new TransferIntake(hardwareMap);
@@ -107,11 +107,16 @@ public abstract class Manual extends LinearOpMode {
             }
             transferIntake.update();
             shooter.moveTurret(follower);
-            telemetry.addData("shooting from far:", shooter.shootMode);
             shooter.spin();
-            telemetry.addLine(shooter.getData());
-            telemetry.addLine(transferIntake.getData());
-            telemetry.update();
+            updateTelemetry();
         }
+    }
+    public void updateTelemetry() {
+        telemetry.addLine(alliance.toString());
+        telemetry.addLine(shooter.toString());
+        telemetry.addLine(transferIntake.toString());
+        telemetry.addLine(follower.getPose().toString());
+        telemetry.addLine(follower.getPose().toString());
+        telemetry.update();
     }
 }

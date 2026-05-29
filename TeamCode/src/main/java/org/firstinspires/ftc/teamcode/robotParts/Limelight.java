@@ -2,7 +2,7 @@ package org.firstinspires.ftc.teamcode.robotParts;
 
 import static org.firstinspires.ftc.teamcode.robotParts.RobotConstants.OFFSET;
 
-import android.graphics.Path;
+import androidx.annotation.NonNull;
 
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
@@ -18,6 +18,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.Position;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -102,5 +103,9 @@ public class Limelight {
                 filteredPoses.stream().mapToDouble(Pose::getX).average().orElse(0),
                 filteredPoses.stream().mapToDouble(Pose::getY).average().orElse(0),
                 follower.getHeading());
+    }
+    @NonNull
+    public String toString() {
+        return String.format(Locale.UK, "---LIMELIGHT---\nDistance: %.3f, Angle: %.3f, Detection age: %.3f",lastDist, lastAngle, mostRecent);
     }
 }

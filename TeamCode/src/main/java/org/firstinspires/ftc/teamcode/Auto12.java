@@ -19,8 +19,6 @@ import org.firstinspires.ftc.teamcode.robotParts.RobotConstants;
 import org.firstinspires.ftc.teamcode.robotParts.Shooter;
 import org.firstinspires.ftc.teamcode.robotParts.TransferIntake;
 
-import java.util.Arrays;
-
 @Configurable
 public class Auto12 extends LinearOpMode {
     private Follower follower;
@@ -58,7 +56,7 @@ public class Auto12 extends LinearOpMode {
         shooter = new Shooter(hardwareMap, alliance, RobotConstants.ShootMode.NEAR, false); // hopefully make this true but test in manual first
         shooter.setSubRange(min(alliance.direction*90.0, 0.0), max(alliance.direction*90.0, 0.0));
         transferIntake = new TransferIntake(hardwareMap);
-        waitForStart();
+        while (!isStarted() && !isStopRequested()) { updateTelemetry(); }
         shooter.turnOnShooter();
         transferIntake.prepShooter();
         move(shootPos);
@@ -99,9 +97,14 @@ public class Auto12 extends LinearOpMode {
         shooter.spin();
         transferIntake.update();
         follower.update();
-        telemetry.addLine(shooter.getData());
-        telemetry.addLine(transferIntake.getData());
-        telemetry.addLine(Arrays.toString(follower.debug()));
+        updateTelemetry();
+    }
+    public void updateTelemetry() {
+        telemetry.addLine(alliance.toString());
+        telemetry.addLine(shooter.toString());
+        telemetry.addLine(transferIntake.toString());
+        telemetry.addLine(follower.getPose().toString());
+        telemetry.addLine(follower.getPose().toString());
         telemetry.update();
     }
 }

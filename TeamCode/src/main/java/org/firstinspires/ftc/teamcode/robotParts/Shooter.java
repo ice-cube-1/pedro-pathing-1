@@ -12,17 +12,12 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import static org.firstinspires.ftc.teamcode.robotParts.RobotConstants.*;
 
 import static java.lang.Math.PI;
-
+import androidx.annotation.NonNull;
 import java.util.Arrays;
+import java.util.Locale;
 import java.util.Optional;
 
 public class Shooter {
-
-    public enum TurretState {
-        DETECTED,
-        WRAPPING,
-    }
-
     private final Limelight limelight;
     private final ServoImplEx[] turret = new ServoImplEx[2];
     private final Servo hoodAngle;
@@ -161,20 +156,12 @@ public class Shooter {
         for (DcMotorEx m : motors) { m.setPower(power); }
         atSpeed = Math.abs(errorV) < 40;
     }
-
-    public String getData() {
-        return "Turret state: " + turretState +
-                ", last tag range = " + limelight.lastDist +
-                ", bearing = " + limelight.lastAngle + "\n" +
-                "Turret current position " + getTurretAngle() +
-                ", going to " + gotoPos + "\n" +
-                "Shooter target: " + targetV +
-                "power " + power + "\n" +
-                "actually going at " +
-                motors[0].getVelocity() + ", " + motors[1].getVelocity() + "\n" +
-                "OFFSET - " + shootMode.distanceOffset + " m\nservo position "+hoodAngle.getPosition();
+    @NonNull
+    public String toString() {
+        return String.format(Locale.UK, "---TURRET---\nCurrently %s\nAt position %.3f, going to %.3f", turretState, getTurretAngle(), gotoPos) +
+                String.format(Locale.UK, "---SHOOTER---\nCurrently %s, mode: %s\nTarget power: %.0f, encoder readings: (%.0f, %.0f)",
+                        shooterOn ? "on" : "off", shootMode, power, motors[0].getVelocity(), motors[1].getVelocity()) + limelight;
     }
-
     public DcMotorEx init_motor(String name, HardwareMap hardwareMap, DcMotorSimple.Direction direction) {
         DcMotorEx drive = hardwareMap.get(DcMotorEx.class, name);
         drive.setDirection(direction);

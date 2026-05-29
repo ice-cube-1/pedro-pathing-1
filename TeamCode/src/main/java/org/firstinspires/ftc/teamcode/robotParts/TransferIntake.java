@@ -11,6 +11,10 @@ import static org.firstinspires.ftc.teamcode.robotParts.RobotConstants.STOP_DOWN
 import static org.firstinspires.ftc.teamcode.robotParts.RobotConstants.STOP_UP;
 import static org.firstinspires.ftc.teamcode.robotParts.RobotConstants.TRANSFER_POWER;
 
+import androidx.annotation.NonNull;
+
+import java.util.Locale;
+
 public class TransferIntake {
     public enum IntakeStates {INTAKE, SHOOTING}
     private double intakePower = 0.0;
@@ -44,12 +48,11 @@ public class TransferIntake {
         }
     }
 
-    public String getData() {
-        return "intake: " + intake.getPower() + ", transfer: " + transfer.getPower() + ", state: " + intakeState;
+    @NonNull
+    public String toString() {
+        return String.format(Locale.UK, "---INTAKE---\nState: %s, transfer power %.3f, intake power %.3f", intakeState, transfer.getPower(), intake.getPower());
     }
-
     public void intake(Double i) {intakePower = i;}
-
     public void update() {
         switch (intakeState) {
             case SHOOTING:
