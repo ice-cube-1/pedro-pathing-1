@@ -8,6 +8,7 @@ import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.teamcode.robotParts.Debug;
 import org.firstinspires.ftc.teamcode.robotParts.RobotConstants;
 import org.firstinspires.ftc.teamcode.robotParts.Shooter;
 import org.firstinspires.ftc.teamcode.robotParts.TransferIntake;
@@ -44,10 +45,10 @@ public abstract class Manual extends LinearOpMode {
     @Override
     public void runOpMode() {
         follower = createFollower(hardwareMap);
-        follower.setStartingPose(new Pose(0,0,orientation));
+        follower.setStartingPose(Debug.debugMode ? Debug.startPose() : new Pose(0,0,orientation));
         while (!isStarted() && !isStopRequested()) { updateTelemetry(); }
         follower.startTeleopDrive();
-        shooter = new Shooter(hardwareMap, alliance, RobotConstants.ShootMode.NEAR, true); // may change this
+        shooter = new Shooter(hardwareMap, alliance, RobotConstants.ShootMode.NEAR, false); // hope to change this
         transferIntake = new TransferIntake(hardwareMap);
         end.reset();
         while (opModeIsActive()) {

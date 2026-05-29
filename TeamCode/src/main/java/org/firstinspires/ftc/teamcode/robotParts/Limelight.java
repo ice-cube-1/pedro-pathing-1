@@ -63,7 +63,7 @@ public class Limelight {
         return Optional.empty();
     }
     private void relocaliseTranslation(LLResult result, Follower follower) {
-        if (tryRelocalise) {
+        if (tryRelocalise || (Debug.debugMode && Debug.tryRelocalise)) {
             if (Math.abs(follower.getAngularVelocity()) > 1) {
                 tryRelocalise = false;
                 relocalisationPoses.clear();

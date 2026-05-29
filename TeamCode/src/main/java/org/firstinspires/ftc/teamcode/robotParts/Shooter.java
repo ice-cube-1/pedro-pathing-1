@@ -61,12 +61,15 @@ public class Shooter {
     }
 
     private int getTargetVelocity() {
+        if (Debug.debugMode) {
+            hoodAngle.setPosition(Debug.hoodAngle);
+            return Debug.shooterVelocity;
+        }
         hoodAngle.setPosition(shootMode.hoodPos);
         if (shooterOn) {
             return (int) (177.92 * (limelight.lastDist + shootMode.distanceOffset + distanceOffset) + 937.31);
-        } else {
-            return SHOOTER_IDLE_VELOCITY;
         }
+        return SHOOTER_IDLE_VELOCITY;
     }
     public void relocaliseLL() { limelight.tryRelocalise = true; }
     public void moveTurret(Follower follower) {
@@ -94,7 +97,7 @@ public class Shooter {
         }
 
         if (!paused) {
-            if (usePinpointLoc) {
+            if (usePinpointLoc || (Debug.debugMode && Debug.usePinpointLoc)) {
                 gotoPos = angle + pinpointLocOffset;
             } if (nextPos >= turretMax) {
                 gotoPos = turretMin;
@@ -158,9 +161,9 @@ public class Shooter {
     }
     @NonNull
     public String toString() {
-        return String.format(Locale.UK, "---TURRET---\nCurrently %s\nAt position %.3f, going to %.3f", turretState, getTurretAngle(), gotoPos) +
-                String.format(Locale.UK, "---SHOOTER---\nCurrently %s, mode: %s\nTarget power: %.0f, encoder readings: (%.0f, %.0f)",
-                        shooterOn ? "on" : "off", shootMode, power, motors[0].getVelocity(), motors[1].getVelocity()) + limelight;
+        return String.format(Locale.UK, "---TURRET---\nCurrently %s\nAt position %.3f, going to %.3f, localisation offset %.3f", turretState, getTurretAngle(), gotoPos, pinpointLocOffset) +
+                String.format(Locale.UK, "---SHOOTER---\nCurrently %s, mode: %s\nTarget power: %.0f, encoder readings: (%.0f, %.0f)\nOffset: %.3f(mode) + %.3f(manual)",
+                        shooterOn ? "on" : "off", shootMode, power, motors[0].getVelocity(), motors[1].getVelocity(), shootMode.distanceOffset, distanceOffset) + limelight;
     }
     public DcMotorEx init_motor(String name, HardwareMap hardwareMap, DcMotorSimple.Direction direction) {
         DcMotorEx drive = hardwareMap.get(DcMotorEx.class, name);
