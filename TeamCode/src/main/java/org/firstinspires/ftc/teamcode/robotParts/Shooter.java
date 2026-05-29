@@ -1,7 +1,6 @@
 package org.firstinspires.ftc.teamcode.robotParts;
 
 import com.pedropathing.follower.Follower;
-import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
@@ -12,13 +11,16 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 
 import static org.firstinspires.ftc.teamcode.robotParts.RobotConstants.*;
 
+import static java.lang.Math.PI;
+
 import java.util.Arrays;
+import java.util.Optional;
 
 public class Shooter {
 
     public enum TurretState {
         DETECTED,
-        WRAPPING
+        WRAPPING,
     }
 
     private final Limelight limelight;
@@ -38,10 +40,15 @@ public class Shooter {
     public boolean paused = false;
     public ShootMode shootMode;
     public float distanceOffset;
+    public Alliance alliance;
+    public Double pinpointLocOffset = 0.0;
+    public final boolean usePinpointLoc;
 
-    public Shooter(HardwareMap hardwareMap, int tagID, ShootMode shootMode) {
-        limelight = new Limelight(hardwareMap, tagID);
+    public Shooter(HardwareMap hardwareMap, Alliance alliance, ShootMode shootMode, Boolean usePinpointLoc) {
+        limelight = new Limelight(hardwareMap, alliance.tagID);
+        this.alliance = alliance;
         this.shootMode = shootMode;
+        this.usePinpointLoc = usePinpointLoc;
         turret[0] = hardwareMap.get(ServoImplEx.class, "t1");
         turret[0].setPosition(0.5);
         turret[1] = hardwareMap.get(ServoImplEx.class, "t2");
@@ -68,7 +75,12 @@ public class Shooter {
     }
     public void relocaliseLL() { limelight.tryRelocalise = true; }
     public void moveTurret(Follower follower) {
-        limelight.update(follower);
+        double angle = PI/2
+                - Math.atan2(alliance.mirrorX(12) - follower.getPose().getX(), 132 - follower.getPose().getY())
+                - follower.getPose().getHeading() - getTurretAngle();
+        // definitely need to check for +- errors here
+        Optional<Double> turretReloc = limelight.update(follower);
+        turretReloc.ifPresent(value -> pinpointLocOffset = value - angle);
         switch (turretState) {
             case DETECTED:
                 if (timer.milliseconds() > limelight.mostRecent + 500) {
@@ -85,8 +97,11 @@ public class Shooter {
                 }
                 break;
         }
+
         if (!paused) {
-            if (nextPos >= turretMax) {
+            if (usePinpointLoc) {
+                gotoPos = angle + pinpointLocOffset;
+            } if (nextPos >= turretMax) {
                 gotoPos = turretMin;
             } else if (nextPos <= turretMin) {
                 gotoPos = turretMax;

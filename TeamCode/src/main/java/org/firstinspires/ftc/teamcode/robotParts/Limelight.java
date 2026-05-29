@@ -2,6 +2,8 @@ package org.firstinspires.ftc.teamcode.robotParts;
 
 import static org.firstinspires.ftc.teamcode.robotParts.RobotConstants.OFFSET;
 
+import android.graphics.Path;
+
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
 import com.qualcomm.hardware.limelightvision.LLResult;
@@ -16,6 +18,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.Position;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class Limelight {
@@ -36,10 +39,13 @@ public class Limelight {
         ll.pipelineSwitch(0);
         this.tagID = tagID;
     }
-    public void update(Follower follower) {
+    public Optional<Double> update(Follower follower) {
         LLResult result = ll.getLatestResult();
-        if (result == null || !result.isValid()) return;
-        if (!result.isValid()) return;
+        if (result == null || !result.isValid()) return Optional.empty();
+        relocaliseTranslation(result, follower);
+        return findDistAngle(result);
+    }
+    private Optional<Double> findDistAngle(LLResult result) {
         for (LLResultTypes.FiducialResult tag : result.getFiducialResults()) {
             if (tag.getFiducialId() == tagID) {
                 mostRecent = timer.milliseconds() - result.getStaleness();
@@ -50,8 +56,12 @@ public class Limelight {
                 double targetZ = pos.z - OFFSET * Math.cos(yaw);
                 lastDist = Math.sqrt(targetX * targetX + targetZ * targetZ);
                 lastAngle = Math.toDegrees(Math.atan2(targetX, targetZ));
+                return Optional.of(lastAngle);
             }
         }
+        return Optional.empty();
+    }
+    private void relocaliseTranslation(LLResult result, Follower follower) {
         if (tryRelocalise) {
             if (Math.abs(follower.getAngularVelocity()) > 1) {
                 tryRelocalise = false;

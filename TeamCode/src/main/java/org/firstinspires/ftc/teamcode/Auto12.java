@@ -55,7 +55,7 @@ public class Auto12 extends LinearOpMode {
         curPos = new Pose(alliance.mirrorX(24+ROBOT_WIDTH_CM/(2.54*2)),144.0-ROBOT_LENGTH_CM/(2.54), toRadians(270));
         follower = Constants.createFollower(hardwareMap);
         follower.setStartingPose(curPos);
-        shooter = new Shooter(hardwareMap, alliance.tagID, RobotConstants.ShootMode.NEAR);
+        shooter = new Shooter(hardwareMap, alliance, RobotConstants.ShootMode.NEAR, false); // hopefully make this true but test in manual first
         shooter.setSubRange(min(alliance.direction*90.0, 0.0), max(alliance.direction*90.0, 0.0));
         transferIntake = new TransferIntake(hardwareMap);
         waitForStart();
@@ -71,7 +71,6 @@ public class Auto12 extends LinearOpMode {
             transferIntake.prepShooter();
             if (i == attempt-1) { move(parkPos); }
             else { move(shootPos); }
-            shooter.relocaliseLL();
             shoot();
         }
         move(parkPos);
@@ -82,6 +81,7 @@ public class Auto12 extends LinearOpMode {
         while (opModeIsActive() && follower.isBusy() && timer.milliseconds() < 4000) {updateAll();}
     }
     private void shoot() {
+        shooter.relocaliseLL(); // delete if pathing goes weird
         timer.reset();
         while (opModeIsActive() && timer.milliseconds() < 4000) {
             updateAll();

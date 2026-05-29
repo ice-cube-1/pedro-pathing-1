@@ -21,7 +21,7 @@ public abstract class Manual extends LinearOpMode {
     }
 
     private final double orientation;
-    private final int tag;
+    private final RobotConstants.Alliance alliance;
 
     private Shooter shooter;
     private TransferIntake transferIntake;
@@ -36,9 +36,9 @@ public abstract class Manual extends LinearOpMode {
     private final ElapsedTime dpadTimer = new ElapsedTime();
     private final ElapsedTime end = new ElapsedTime();
 
-    public Manual(double orientation, int tag) {
+    public Manual(double orientation, RobotConstants.Alliance alliance) {
         this.orientation = orientation;
-        this.tag = tag;
+        this.alliance = alliance;
     }
 
     @Override
@@ -47,7 +47,7 @@ public abstract class Manual extends LinearOpMode {
         follower.setStartingPose(new Pose(0,0,orientation));
         waitForStart();
         follower.startTeleopDrive();
-        shooter = new Shooter(hardwareMap, tag, RobotConstants.ShootMode.NEAR);
+        shooter = new Shooter(hardwareMap, alliance, RobotConstants.ShootMode.NEAR, true); // may change this
         transferIntake = new TransferIntake(hardwareMap);
         end.reset();
         while (opModeIsActive()) {
