@@ -15,5 +15,6 @@ public class Debug {
     public static double startPoseX = 0.0;
     public static double startPoseY = 0.0;
     public static double startPoseThetaDeg = 0.0;
+    // in code everything assumes blue alliance - do 144-[found x position] if testing red alliance
     public static Pose startPose() { return new Pose(startPoseX, startPoseY, toRadians(startPoseThetaDeg)); }
 }

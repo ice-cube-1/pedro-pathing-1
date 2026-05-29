@@ -44,6 +44,7 @@ public class Auto12 extends LinearOpMode {
     @Override
     public void runOpMode() {
         double[][] intakePositions = new double[][] {
+                // FAR IN point of each spike
                 {alliance.mirrorX(84.0-15.0), 24.0, toRadians(alliance.mirrorAngle(90))},
                 {alliance.mirrorX(60.0-15.0), 20.0, toRadians(alliance.mirrorAngle(90))},
                 {alliance.mirrorX(36.0-15.0), 20.0, toRadians(alliance.mirrorAngle(90))}
@@ -103,7 +104,6 @@ public class Auto12 extends LinearOpMode {
         telemetry.addLine(alliance.toString());
         telemetry.addLine(shooter.toString());
         telemetry.addLine(transferIntake.toString());
-        telemetry.addLine(follower.getPose().toString());
         telemetry.addLine(follower.getPose().toString());
         telemetry.update();
     }

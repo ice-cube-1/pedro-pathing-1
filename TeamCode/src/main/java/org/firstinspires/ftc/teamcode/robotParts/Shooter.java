@@ -57,7 +57,7 @@ public class Shooter {
     }
 
     public boolean canShoot() {
-        return Math.abs(limelight.lastAngle) < 4 && turretState == TurretState.DETECTED || paused;
+        return (Math.abs(limelight.lastAngle) < 4 && turretState == TurretState.DETECTED) || paused;
     }
 
     private int getTargetVelocity() {

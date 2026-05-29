@@ -34,13 +34,14 @@ public class AutoFar extends LinearOpMode {
     }
     public void runOpMode()  {
         ArrayList<Pose> poses = new ArrayList<>();
-        poses.add(new Pose(alliance.mirrorX(48+ROBOT_WIDTH_CM/(2.54*2)), ROBOT_LENGTH_CM/(2.54),toRadians(270)));
+        // all of these need checking icl
+        poses.add(new Pose(alliance.mirrorX(48+ROBOT_WIDTH_CM/(2.54*2)), ROBOT_LENGTH_CM/(2.54),toRadians(270))); // start
         poses.add(new Pose(alliance.mirrorX(48+ROBOT_WIDTH_CM/(2.54*2)),ROBOT_LENGTH_CM/(2.54)+6, toRadians(270))); // shoot here
         poses.add(new Pose(alliance.mirrorX(60.0),84.0-24.0-20.0,toRadians(alliance.mirrorAngle(90)))); // start intaking here
         poses.add(new Pose(alliance.mirrorX(20.0), 84.0-24.0-20.0, toRadians(alliance.mirrorAngle(90)))); // stop intaking here
         poses.add(new Pose(alliance.mirrorX(48+ROBOT_WIDTH_CM/(2.54*2)), ROBOT_LENGTH_CM/(2.54)+6,toRadians(270))); // shoot here
-        poses.add(new Pose(alliance.mirrorX(9.0),84.0-24.0-6.0, toRadians(270)));
-        poses.add(new Pose(alliance.mirrorX(9.0),ROBOT_LENGTH_CM/(2.54), toRadians(270)));
+        poses.add(new Pose(alliance.mirrorX(9.0),84.0-24.0-6.0, toRadians(270))); // start getting 3 from edge
+        poses.add(new Pose(alliance.mirrorX(9.0),ROBOT_LENGTH_CM/(2.54), toRadians(270))); // go into far corner
         poses.add(new Pose(alliance.mirrorX(48+ROBOT_WIDTH_CM/(2.54*2)),ROBOT_LENGTH_CM/(2.54)+6, toRadians(270))); // shoot here
         poses.add(new Pose(alliance.mirrorX(48+ROBOT_WIDTH_CM/(2.54*2)), ROBOT_LENGTH_CM/(2.54)+24,toRadians(270))); // park
         ArrayList<Path> paths = new ArrayList<>();
@@ -99,7 +100,6 @@ public class AutoFar extends LinearOpMode {
         telemetry.addLine(alliance.toString());
         telemetry.addLine(shooter.toString());
         telemetry.addLine(transferIntake.toString());
-        telemetry.addLine(follower.getPose().toString());
         telemetry.addLine(follower.getPose().toString());
         telemetry.update();
     }

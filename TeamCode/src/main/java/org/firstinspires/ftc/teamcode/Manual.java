@@ -73,11 +73,11 @@ public abstract class Manual extends LinearOpMode {
                 timeToEnd = timer.milliseconds() + 200;
             }
             if (gamepad1.dpad_up && dpadTimer.milliseconds() > 200) {
-                shooter.distanceOffset += 0.1;
+                shooter.distanceOffset += 0.1F;
                 dpadTimer.reset();
             }
             if (gamepad1.dpad_down && dpadTimer.milliseconds() > 200) {
-                shooter.distanceOffset -= 0.1;
+                shooter.distanceOffset -= 0.1F;
                 dpadTimer.reset();
             }
             if (gamepad1.a && dpadTimer.milliseconds() > 200) {
@@ -116,7 +116,6 @@ public abstract class Manual extends LinearOpMode {
         telemetry.addLine(alliance.toString());
         telemetry.addLine(shooter.toString());
         telemetry.addLine(transferIntake.toString());
-        telemetry.addLine(follower.getPose().toString());
         telemetry.addLine(follower.getPose().toString());
         telemetry.update();
     }
