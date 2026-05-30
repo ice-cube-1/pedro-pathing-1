@@ -16,6 +16,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.teamcode.robotParts.RobotConstants;
+import org.firstinspires.ftc.teamcode.robotParts.RobotState;
 import org.firstinspires.ftc.teamcode.robotParts.Shooter;
 import org.firstinspires.ftc.teamcode.robotParts.TransferIntake;
 
@@ -73,6 +74,8 @@ public class Auto12 extends LinearOpMode {
             shoot();
         }
         move(parkPos);
+        RobotState.ALLIANCE_COLOUR = alliance;
+        RobotState.AUTO_END_POSE = follower.getPose();
     }
     private void follow(Path path) {
         timer.reset();

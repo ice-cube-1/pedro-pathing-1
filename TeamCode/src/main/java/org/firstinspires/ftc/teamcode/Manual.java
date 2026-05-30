@@ -21,8 +21,9 @@ public abstract class Manual extends LinearOpMode {
         SHOOTER_ON
     }
 
-    private final double orientation;
+    private final Pose position;
     private final RobotConstants.Alliance alliance;
+    private final boolean useLoc;
 
     private Shooter shooter;
     private TransferIntake transferIntake;
@@ -37,23 +38,25 @@ public abstract class Manual extends LinearOpMode {
     private final ElapsedTime dpadTimer = new ElapsedTime();
     private final ElapsedTime end = new ElapsedTime();
 
-    public Manual(double orientation, RobotConstants.Alliance alliance) {
-        this.orientation = orientation;
+    public Manual(Pose start, RobotConstants.Alliance alliance, boolean useLoc) {
+        this.useLoc = useLoc;
+        this.position = start;
         this.alliance = alliance;
     }
 
     @Override
     public void runOpMode() {
         follower = createFollower(hardwareMap);
-        follower.setStartingPose(Debug.debugMode ? Debug.startPose() : new Pose(0,0,orientation));
+        follower.setStartingPose(Debug.debugMode ? Debug.startPose() : position);
         while (!isStarted() && !isStopRequested()) { updateTelemetry(); }
         follower.startTeleopDrive();
-        shooter = new Shooter(hardwareMap, alliance, RobotConstants.ShootMode.NEAR, false); // hope to change this
+        shooter = new Shooter(hardwareMap, alliance, RobotConstants.ShootMode.NEAR, useLoc);
         transferIntake = new TransferIntake(hardwareMap);
         end.reset();
         while (opModeIsActive()) {
             if (end.seconds() > 150) break;
             follower.update();
+            // TODO this is wrong, and should be different for different alliances
             follower.setTeleOpDrive(
                     -gamepad1.left_stick_y * MANUAL_MULTIPLIER,
                     -gamepad1.left_stick_x * MANUAL_MULTIPLIER,
@@ -90,6 +93,10 @@ public abstract class Manual extends LinearOpMode {
             }
             if (gamepad1.y && dpadTimer.milliseconds() > 200) { //pause turret movement
                 shooter.pauseTurret();
+                dpadTimer.reset();
+            }
+            if (gamepad1.b && dpadTimer.milliseconds() > 200 && useLoc) {
+                shooter.relocaliseLL();
                 dpadTimer.reset();
             }
             if (robotState == RobotState.INTAKE) {
