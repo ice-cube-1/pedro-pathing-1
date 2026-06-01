@@ -1,18 +1,18 @@
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.autos;
 
 import static org.firstinspires.ftc.teamcode.robotParts.RobotState.ALLIANCE_COLOUR;
 import static org.firstinspires.ftc.teamcode.robotParts.RobotState.NUM_TO_ATTEMPT;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
 
-import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.robotParts.RobotConstants;
 import org.firstinspires.ftc.teamcode.robotParts.RobotState;
 
-@Autonomous(name = "NEAR ZONE SELECTOR")
+@TeleOp(name = "NEAR ZONE SELECTOR", group = "selectors")
 public class NearZoneSelector extends LinearOpMode {
     @Override
     public void runOpMode() {
@@ -20,7 +20,7 @@ public class NearZoneSelector extends LinearOpMode {
         waitForStart();
         while (opModeIsActive()) {
             for (int i = 0; i<=3; i++) {
-                telemetry.addLine((NUM_TO_ATTEMPT == i ? "> ": "  ") + RobotState.displayNumToAttempt(i));
+                telemetry.addLine((NUM_TO_ATTEMPT == i ? "> ": "  ") + RobotState.displayNumToAttempt(i, RobotConstants.ShootMode.NEAR));
             }
             telemetry.addLine("DPAD LEFT FOR BLUE ALLIANCE, RIGHT FOR RED ALLIANCE");
             telemetry.addLine("ALLIANCE SELECTED: "+ALLIANCE_COLOUR);

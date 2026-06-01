@@ -12,10 +12,8 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 
 import static org.firstinspires.ftc.teamcode.robotParts.RobotConstants.*;
 
-import static java.lang.Math.PI;
 import static java.lang.Math.abs;
 import static java.lang.Math.toDegrees;
-import static java.lang.Math.toRadians;
 
 import androidx.annotation.NonNull;
 import java.util.Arrays;
@@ -42,9 +40,7 @@ public class Shooter {
     public float distanceOffset;
     public Alliance alliance;
     public Double pinpointLocOffset = 0.0;
-    public final boolean usePinpointLoc;
-    public Double heading = 0.0;
-    public double worldAngle = 0.0;
+    public boolean usePinpointLoc;
 
     public Shooter(HardwareMap hardwareMap, Alliance alliance, ShootMode shootMode, Boolean usePinpointLoc) {
         limelight = new Limelight(hardwareMap, alliance.tagID);
@@ -80,22 +76,16 @@ public class Shooter {
     }
     public void relocaliseLL() { limelight.tryRelocalise = true; }
     public static double calculateAngleToPose(Pose robot, Pose target) {
-        double dx = robot.getX() - target.getX();
+        double dx = target.getX() - robot.getX();
         double dy = target.getY() - robot.getY();
-        double rawDelta = Math.atan2(dy, dx) + robot.getHeading() - PI;
-        return Math.atan2(Math.sin(rawDelta), Math.cos(rawDelta));
+        double rawDelta = Math.atan2(dy, dx) - robot.getHeading();
+        return -Math.atan2(Math.sin(rawDelta), Math.cos(rawDelta));
     }
     public void moveTurret(Follower follower) {
         double angle = calculateAngleToPose(follower.getPose(), new Pose(alliance.mirrorX(12), 132,0));
         Optional<Double> turretReloc = limelight.update(follower);
-        double finalAngle = angle;
-        turretReloc.ifPresent(value -> pinpointLocOffset = value - finalAngle);
-        angle = toDegrees(angle);
-        while (angle < -180) angle += 180;
-        while (angle > 180) angle -= 180;
-        worldAngle = angle;
-        heading = Math.toDegrees(follower.getPose().getHeading());
-        // definitely need to check for +- errors here
+        // TODO hopefully final += issue is here
+        turretReloc.ifPresent(value -> pinpointLocOffset = value - angle);
         switch (turretState) {
             case DETECTED:
                 if (timer.milliseconds() > limelight.mostRecent + 500) {
@@ -109,7 +99,7 @@ public class Shooter {
                     turretState = TurretState.DETECTED;
                 } else {
                     if ((usePinpointLoc && !Debug.debugMode) || (Debug.debugMode && Debug.usePinpointLoc)) {
-                        gotoPos = angle + toDegrees(pinpointLocOffset);
+                        gotoPos = toDegrees(angle + pinpointLocOffset);
                         if (abs(gotoPos - nextPos) > 2.0) {
                             nextPos = (gotoPos - getTurretAngle() > 0 ? shootMode.wrappingStep : -shootMode.wrappingStep) + getTurretAngle();
                         }
@@ -130,8 +120,6 @@ public class Shooter {
             }
         }
     }
-
-    public void reverseGoto() { gotoPos = (gotoPos > 0) ? turretMin : turretMax; }
     public void pauseTurret(){ paused = !paused; }
     private double getTurretAngle() {
         return ((turret[0].getPosition() + turret[1].getPosition()) / 2.0) * TURRET_MAX_DEGREES - TURRET_ZERO_DEG;
@@ -183,9 +171,9 @@ public class Shooter {
     }
     @NonNull
     public String toString() {
-        return String.format(Locale.UK, "---TURRET---\nCurrently %s\nAt position %.3f, going to %.3f, localisation offset %.3f", turretState, getTurretAngle(), nextPos, pinpointLocOffset) +
+        return String.format(Locale.UK, "---TURRET---\nCurrently %s\nAt position %.3f, going to %.3f, localisation offset %.3f (using localisation for turret tracking = %b)", turretState, getTurretAngle(), nextPos, pinpointLocOffset, usePinpointLoc) +
                 String.format(Locale.UK, "---SHOOTER---\nCurrently %s, mode: %s\nTarget power: %.0f, encoder readings: (%.0f, %.0f)\nOffset: %.3f(mode) + %.3f(manual)",
-                        shooterOn ? "on" : "off", shootMode, power, motors[0].getVelocity(), motors[1].getVelocity(), shootMode.distanceOffset, distanceOffset) + limelight +"\n"+ worldAngle + " "+ heading;
+                        shooterOn ? "on" : "off", shootMode, power, motors[0].getVelocity(), motors[1].getVelocity(), shootMode.distanceOffset, distanceOffset) + limelight +"\n";
     }
     public DcMotorEx init_motor(String name, HardwareMap hardwareMap, DcMotorSimple.Direction direction) {
         DcMotorEx drive = hardwareMap.get(DcMotorEx.class, name);

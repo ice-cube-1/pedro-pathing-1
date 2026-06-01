@@ -15,7 +15,7 @@ import static java.lang.Math.toDegrees;
 
 import java.util.List;
 
-@TeleOp
+@TeleOp(name = "testing limelight", group = "tuning")
 public class LimeLightTest extends LinearOpMode {
 
     private Limelight3A limelight;

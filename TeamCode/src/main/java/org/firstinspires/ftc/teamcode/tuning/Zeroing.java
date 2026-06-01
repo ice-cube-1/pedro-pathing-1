@@ -11,7 +11,7 @@ import com.qualcomm.robotcore.hardware.PwmControl;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.ServoImplEx;
 
-@TeleOp
+@TeleOp(name = "zero components", group = "tuning")
 public class Zeroing extends LinearOpMode {
     public void runOpMode() {
         waitForStart();

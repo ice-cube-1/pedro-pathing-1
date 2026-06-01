@@ -6,7 +6,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
-@TeleOp
+@TeleOp(name = "encoder and wheel test", group = "tuning")
 public class OdometryWheelsConfig extends LinearOpMode {
 
     @Override

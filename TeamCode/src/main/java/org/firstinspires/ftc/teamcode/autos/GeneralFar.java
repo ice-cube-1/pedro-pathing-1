@@ -4,9 +4,9 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
 import org.firstinspires.ftc.teamcode.robotParts.RobotState;
 
-@Autonomous(name = "NEAR - USE NEAR SELECTOR")
-public class GeneralNear extends Auto12 {
-    public GeneralNear() {
+@Autonomous(name = "FAR - USE FAR SELECTOR")
+public class GeneralFar extends AutoFar {
+    public GeneralFar() {
         super(RobotState.ALLIANCE_COLOUR, RobotState.NUM_TO_ATTEMPT);
     }
 }

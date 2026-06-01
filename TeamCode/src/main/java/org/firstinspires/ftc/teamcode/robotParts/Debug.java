@@ -11,7 +11,7 @@ public class Debug {
     public static int shooterVelocity = 0;
     public static double hoodAngle = 1.0;
     public static boolean tryRelocalise = true;
-    public static boolean usePinpointLoc = false;
+    public static boolean usePinpointLoc = true;
     public static double startPoseX = 72.0;
     public static double startPoseY = 72.0;
     public static double startPoseThetaDeg = 90.0;

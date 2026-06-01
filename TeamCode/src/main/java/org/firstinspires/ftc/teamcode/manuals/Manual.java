@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.manuals;
 
 import static org.firstinspires.ftc.teamcode.pedroPathing.Constants.createFollower;
 import static org.firstinspires.ftc.teamcode.robotParts.RobotConstants.MANUAL_MULTIPLIER;
@@ -92,11 +92,11 @@ public abstract class Manual extends LinearOpMode {
                 shooter.distanceOffset -= 0.1F;
                 dpadTimer.reset();
             }
-            if (gamepad1.a && dpadTimer.milliseconds() > 200) {
-                shooter.reverseGoto();
+            if (gamepad1.a && dpadTimer.milliseconds() > 200) { // toggle turret tracking modes
+                shooter.usePinpointLoc = !shooter.usePinpointLoc;
                 dpadTimer.reset();
             }
-            if (gamepad1.x && dpadTimer.milliseconds() > 200) {
+            if (gamepad1.x && dpadTimer.milliseconds() > 200) { // switch between near and far zone
                 shooter.toggleFromFar();
                 dpadTimer.reset();
             }
@@ -104,7 +104,7 @@ public abstract class Manual extends LinearOpMode {
                 shooter.pauseTurret();
                 dpadTimer.reset();
             }
-            if (gamepad1.b && dpadTimer.milliseconds() > 200 && useLoc) {
+            if (gamepad1.b && dpadTimer.milliseconds() > 200 && useLoc) { // relocalise limelight
                 shooter.relocaliseLL();
                 dpadTimer.reset();
             }
