@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.robotParts;
 
 import com.pedropathing.follower.Follower;
+import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
@@ -12,6 +13,10 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import static org.firstinspires.ftc.teamcode.robotParts.RobotConstants.*;
 
 import static java.lang.Math.PI;
+import static java.lang.Math.abs;
+import static java.lang.Math.toDegrees;
+import static java.lang.Math.toRadians;
+
 import androidx.annotation.NonNull;
 import java.util.Arrays;
 import java.util.Locale;
@@ -38,6 +43,8 @@ public class Shooter {
     public Alliance alliance;
     public Double pinpointLocOffset = 0.0;
     public final boolean usePinpointLoc;
+    public Double heading = 0.0;
+    public double worldAngle = 0.0;
 
     public Shooter(HardwareMap hardwareMap, Alliance alliance, ShootMode shootMode, Boolean usePinpointLoc) {
         limelight = new Limelight(hardwareMap, alliance.tagID);
@@ -57,7 +64,7 @@ public class Shooter {
     }
 
     public boolean canShoot() {
-        return (Math.abs(limelight.lastAngle) < 4 && turretState == TurretState.DETECTED) || paused;
+        return (abs(limelight.lastAngle) < 4 && turretState == TurretState.DETECTED) || paused;
     }
 
     private int getTargetVelocity() {
@@ -72,18 +79,28 @@ public class Shooter {
         return SHOOTER_IDLE_VELOCITY;
     }
     public void relocaliseLL() { limelight.tryRelocalise = true; }
+    public static double calculateAngleToPose(Pose robot, Pose target) {
+        double dx = robot.getX() - target.getX();
+        double dy = target.getY() - robot.getY();
+        double rawDelta = Math.atan2(dy, dx) + robot.getHeading() - PI;
+        return Math.atan2(Math.sin(rawDelta), Math.cos(rawDelta));
+    }
     public void moveTurret(Follower follower) {
-        double angle = PI/2
-                - Math.atan2(alliance.mirrorX(12) - follower.getPose().getX(), 132 - follower.getPose().getY())
-                - follower.getPose().getHeading() - getTurretAngle();
-        // definitely need to check for +- errors here
+        double angle = calculateAngleToPose(follower.getPose(), new Pose(alliance.mirrorX(12), 132,0));
         Optional<Double> turretReloc = limelight.update(follower);
-        turretReloc.ifPresent(value -> pinpointLocOffset = value - angle);
+        double finalAngle = angle;
+        turretReloc.ifPresent(value -> pinpointLocOffset = value - finalAngle);
+        angle = toDegrees(angle);
+        while (angle < -180) angle += 180;
+        while (angle > 180) angle -= 180;
+        worldAngle = angle;
+        heading = Math.toDegrees(follower.getPose().getHeading());
+        // definitely need to check for +- errors here
         switch (turretState) {
             case DETECTED:
                 if (timer.milliseconds() > limelight.mostRecent + 500) {
                     turretState = TurretState.WRAPPING;
-                } else if (Math.abs(limelight.lastAngle) > 1.0) {
+                } else if (abs(limelight.lastAngle) > 1.0) {
                     nextPos = limelight.lastAngle * shootMode.detectedKP + getTurretAngle();
                 }
                 break;
@@ -91,15 +108,20 @@ public class Shooter {
                 if (timer.milliseconds() < limelight.mostRecent + 500) {
                     turretState = TurretState.DETECTED;
                 } else {
-                    nextPos = (gotoPos - getTurretAngle() > 0 ? shootMode.wrappingStep : -shootMode.wrappingStep) + getTurretAngle();
+                    if ((usePinpointLoc && !Debug.debugMode) || (Debug.debugMode && Debug.usePinpointLoc)) {
+                        gotoPos = angle + toDegrees(pinpointLocOffset);
+                        if (abs(gotoPos - nextPos) > 2.0) {
+                            nextPos = (gotoPos - getTurretAngle() > 0 ? shootMode.wrappingStep : -shootMode.wrappingStep) + getTurretAngle();
+                        }
+                    } else {
+                        nextPos = (gotoPos - getTurretAngle() > 0 ? shootMode.wrappingStep : -shootMode.wrappingStep) + getTurretAngle();
+                    }
                 }
                 break;
         }
 
         if (!paused) {
-            if (usePinpointLoc || (Debug.debugMode && Debug.usePinpointLoc)) {
-                gotoPos = angle + pinpointLocOffset;
-            } if (nextPos >= turretMax) {
+            if (nextPos >= turretMax) {
                 gotoPos = turretMin;
             } else if (nextPos <= turretMin) {
                 gotoPos = turretMax;
@@ -157,13 +179,13 @@ public class Shooter {
         double errorV = targetV - currentV;
         power = Math.max(0.0, Math.min(1.0, KP_SHOOTER * errorV + targetV * K_FF + KFF_INTERCEPT));
         for (DcMotorEx m : motors) { m.setPower(power); }
-        atSpeed = Math.abs(errorV) < 40;
+        atSpeed = abs(errorV) < 40;
     }
     @NonNull
     public String toString() {
-        return String.format(Locale.UK, "---TURRET---\nCurrently %s\nAt position %.3f, going to %.3f, localisation offset %.3f", turretState, getTurretAngle(), gotoPos, pinpointLocOffset) +
+        return String.format(Locale.UK, "---TURRET---\nCurrently %s\nAt position %.3f, going to %.3f, localisation offset %.3f", turretState, getTurretAngle(), nextPos, pinpointLocOffset) +
                 String.format(Locale.UK, "---SHOOTER---\nCurrently %s, mode: %s\nTarget power: %.0f, encoder readings: (%.0f, %.0f)\nOffset: %.3f(mode) + %.3f(manual)",
-                        shooterOn ? "on" : "off", shootMode, power, motors[0].getVelocity(), motors[1].getVelocity(), shootMode.distanceOffset, distanceOffset) + limelight;
+                        shooterOn ? "on" : "off", shootMode, power, motors[0].getVelocity(), motors[1].getVelocity(), shootMode.distanceOffset, distanceOffset) + limelight +"\n"+ worldAngle + " "+ heading;
     }
     public DcMotorEx init_motor(String name, HardwareMap hardwareMap, DcMotorSimple.Direction direction) {
         DcMotorEx drive = hardwareMap.get(DcMotorEx.class, name);

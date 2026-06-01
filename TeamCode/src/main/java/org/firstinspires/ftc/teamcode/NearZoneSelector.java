@@ -17,9 +17,10 @@ public class NearZoneSelector extends LinearOpMode {
     @Override
     public void runOpMode() {
         ElapsedTime timer = new ElapsedTime();
+        waitForStart();
         while (opModeIsActive()) {
             for (int i = 0; i<=3; i++) {
-                telemetry.addLine(NUM_TO_ATTEMPT == i ? "> ": "  "+ RobotState.displayNumToAttempt(i));
+                telemetry.addLine((NUM_TO_ATTEMPT == i ? "> ": "  ") + RobotState.displayNumToAttempt(i));
             }
             telemetry.addLine("DPAD LEFT FOR BLUE ALLIANCE, RIGHT FOR RED ALLIANCE");
             telemetry.addLine("ALLIANCE SELECTED: "+ALLIANCE_COLOUR);
