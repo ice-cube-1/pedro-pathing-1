@@ -101,6 +101,7 @@ public class AutoFar extends LinearOpMode {
     }
     public void updateTelemetry() {
         telemetry.addLine(alliance.toString());
+        telemetry.addLine(RobotState.displayNumToAttempt(attemptCount, RobotConstants.ShootMode.FAR));
         telemetry.addLine(shooter.toString());
         telemetry.addLine(transferIntake.toString());
         telemetry.addLine(follower.getPose().toString());

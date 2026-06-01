@@ -105,7 +105,7 @@ public class Auto12 extends LinearOpMode {
     }
     public void updateTelemetry() {
         telemetry.addLine(alliance.toString());
-        telemetry.addLine(RobotState.displayNumToAttempt(attempt));
+        telemetry.addLine(RobotState.displayNumToAttempt(attempt, RobotConstants.ShootMode.NEAR));
         telemetry.addLine(shooter.toString());
         telemetry.addLine(transferIntake.toString());
         telemetry.addLine(follower.getPose().toString());
