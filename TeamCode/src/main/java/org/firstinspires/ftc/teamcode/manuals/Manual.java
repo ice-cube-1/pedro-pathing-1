@@ -59,15 +59,15 @@ public abstract class Manual extends LinearOpMode {
             // TODO this is wrong, and should be different for different alliances
             if (alliance == RobotConstants.Alliance.BLUE) {
                 follower.setTeleOpDrive(
-                        -gamepad1.left_stick_x * MANUAL_MULTIPLIER,
                         -gamepad1.left_stick_y * MANUAL_MULTIPLIER,
+                        -gamepad1.left_stick_x * MANUAL_MULTIPLIER,
                         -gamepad1.right_stick_x * MANUAL_MULTIPLIER * 0.7,
                         false
                 );
             } else {
                 follower.setTeleOpDrive(
-                        -gamepad1.left_stick_x * MANUAL_MULTIPLIER,
                         gamepad1.left_stick_y * MANUAL_MULTIPLIER,
+                        gamepad1.left_stick_x * MANUAL_MULTIPLIER,
                         -gamepad1.right_stick_x * MANUAL_MULTIPLIER * 0.7,
                         false
                 );

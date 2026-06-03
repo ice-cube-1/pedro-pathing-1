@@ -5,5 +5,5 @@ import static org.firstinspires.ftc.teamcode.robotParts.RobotState.AUTO_END_POSE
 
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
-@TeleOp(name = "MANUAL - FOLLOW FROM AUTO (or set start config in panels)")
+@TeleOp(name = "MANUAL - FOLLOW FROM AUTO")
 public class MainManual extends Manual { public MainManual() {super(AUTO_END_POSE, ALLIANCE_COLOUR, true);}}
