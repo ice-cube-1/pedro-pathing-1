@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.autos;
 
 import static org.firstinspires.ftc.teamcode.robotParts.RobotConstants.ROBOT_LENGTH_CM;
 import static org.firstinspires.ftc.teamcode.robotParts.RobotConstants.ROBOT_WIDTH_CM;
+import static org.firstinspires.ftc.teamcode.robotParts.RobotState.ALLIANCE_COLOUR;
 import static java.lang.Double.max;
 import static java.lang.Math.min;
 import static java.lang.Math.toRadians;
@@ -26,12 +27,10 @@ public class Auto12 extends LinearOpMode {
     private Shooter shooter;
     private TransferIntake transferIntake;
     private final ElapsedTime timer = new ElapsedTime();
-    private final RobotConstants.Alliance alliance;
     private final int attempt;
     public static double shooter_y = 80.0;
     public static double park_y = 105.0 - 12.0;
-    public Auto12(RobotConstants.Alliance alliance, int numToAttempt) {
-        this.alliance = alliance;
+    public Auto12(int numToAttempt) {
         this.attempt = numToAttempt;
     }
     private Pose curPos;
@@ -46,17 +45,17 @@ public class Auto12 extends LinearOpMode {
     public void runOpMode() {
         double[][] intakePositions = new double[][] {
                 // FAR IN point of each spike
-                {alliance.mirrorX(84.0-15.0), 24.0, toRadians(alliance.mirrorAngle(90))},
-                {alliance.mirrorX(60.0-15.0), 20.0, toRadians(alliance.mirrorAngle(90))},
-                {alliance.mirrorX(36.0-15.0), 20.0, toRadians(alliance.mirrorAngle(90))}
+                {ALLIANCE_COLOUR.mirrorX(84.0-15.0), 24.0, toRadians(ALLIANCE_COLOUR.mirrorAngle(90))},
+                {ALLIANCE_COLOUR.mirrorX(60.0-15.0), 20.0, toRadians(ALLIANCE_COLOUR.mirrorAngle(90))},
+                {ALLIANCE_COLOUR.mirrorX(36.0-15.0), 20.0, toRadians(ALLIANCE_COLOUR.mirrorAngle(90))}
         };
-        Pose shootPos = new Pose(alliance.mirrorX(60.0), shooter_y, toRadians(270));
-        Pose parkPos = new Pose(alliance.mirrorX(60.0), park_y, toRadians(270));
-        curPos = new Pose(alliance.mirrorX(24+ROBOT_WIDTH_CM/(2.54*2)),144.0-ROBOT_LENGTH_CM/(2.54), toRadians(270));
+        Pose shootPos = new Pose(ALLIANCE_COLOUR.mirrorX(60.0), shooter_y, toRadians(270));
+        Pose parkPos = new Pose(ALLIANCE_COLOUR.mirrorX(60.0), park_y, toRadians(270));
+        curPos = new Pose(ALLIANCE_COLOUR.mirrorX(24+ROBOT_WIDTH_CM/(2.54*2)),144.0-ROBOT_LENGTH_CM/(2.54), toRadians(270));
         follower = Constants.createFollower(hardwareMap);
         follower.setStartingPose(curPos);
-        shooter = new Shooter(hardwareMap, alliance, RobotConstants.ShootMode.NEAR, true);
-        shooter.setSubRange(min(alliance.direction*90.0, 0.0), max(alliance.direction*90.0, 0.0));
+        shooter = new Shooter(hardwareMap, RobotConstants.ShootMode.NEAR, true);
+        shooter.setSubRange(min(ALLIANCE_COLOUR.direction*90.0, 0.0), max(ALLIANCE_COLOUR.direction*90.0, 0.0));
         transferIntake = new TransferIntake(hardwareMap);
         while (!isStarted() && !isStopRequested()) { updateTelemetry(); }
         shooter.turnOnShooter();
@@ -64,7 +63,7 @@ public class Auto12 extends LinearOpMode {
         move(shootPos);
         shoot();
         for (int i=0;i<attempt;i++){
-            move(new Pose(alliance.mirrorX(60.0), intakePositions[i][0], intakePositions[i][2]));
+            move(new Pose(ALLIANCE_COLOUR.mirrorX(60.0), intakePositions[i][0], intakePositions[i][2]));
             transferIntake.intake(1.0);
             move(new Pose(intakePositions[i][1], intakePositions[i][0],intakePositions[i][2]));
             transferIntake.intake(0.0);
@@ -74,7 +73,6 @@ public class Auto12 extends LinearOpMode {
             shoot();
         }
         move(parkPos);
-        RobotState.ALLIANCE_COLOUR = alliance;
         RobotState.AUTO_END_POSE = follower.getPose();
     }
     private void follow(Path path) {
@@ -104,7 +102,7 @@ public class Auto12 extends LinearOpMode {
         updateTelemetry();
     }
     public void updateTelemetry() {
-        telemetry.addLine(alliance.toString());
+        telemetry.addLine(ALLIANCE_COLOUR.toString());
         telemetry.addLine(RobotState.displayNumToAttempt(attempt, RobotConstants.ShootMode.NEAR));
         telemetry.addLine(shooter.toString());
         telemetry.addLine(transferIntake.toString());

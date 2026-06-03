@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.autos;
 
 import static org.firstinspires.ftc.teamcode.robotParts.RobotConstants.ROBOT_LENGTH_CM;
 import static org.firstinspires.ftc.teamcode.robotParts.RobotConstants.ROBOT_WIDTH_CM;
+import static org.firstinspires.ftc.teamcode.robotParts.RobotState.ALLIANCE_COLOUR;
 import static java.lang.Double.max;
 import static java.lang.Math.min;
 import static java.lang.Math.toRadians;
@@ -26,25 +27,23 @@ public class AutoFar extends LinearOpMode {
     private Shooter shooter;
     private TransferIntake transferIntake;
     private final ElapsedTime timer = new ElapsedTime();
-    private final RobotConstants.Alliance alliance;
     private final int attemptCount;
 
-    public AutoFar(RobotConstants.Alliance alliance, int attemptCount) {
+    public AutoFar(int attemptCount) {
         this.attemptCount = attemptCount;
-        this.alliance = alliance;
     }
     public void runOpMode()  {
         ArrayList<Pose> poses = new ArrayList<>();
         // all of these need checking icl
-        poses.add(new Pose(alliance.mirrorX(48+ROBOT_WIDTH_CM/(2.54*2)), ROBOT_LENGTH_CM/(2.54),toRadians(270))); // start
-        poses.add(new Pose(alliance.mirrorX(48+ROBOT_WIDTH_CM/(2.54*2)),ROBOT_LENGTH_CM/(2.54)+6, toRadians(270))); // shoot here
-        poses.add(new Pose(alliance.mirrorX(60.0),84.0-24.0-20.0,toRadians(alliance.mirrorAngle(90)))); // start intaking here
-        poses.add(new Pose(alliance.mirrorX(20.0), 84.0-24.0-20.0, toRadians(alliance.mirrorAngle(90)))); // stop intaking here
-        poses.add(new Pose(alliance.mirrorX(48+ROBOT_WIDTH_CM/(2.54*2)), ROBOT_LENGTH_CM/(2.54)+6,toRadians(270))); // shoot here
-        poses.add(new Pose(alliance.mirrorX(9.0),84.0-24.0-6.0, toRadians(270))); // start getting 3 from edge
-        poses.add(new Pose(alliance.mirrorX(9.0),ROBOT_LENGTH_CM/(2.54), toRadians(270))); // go into far corner
-        poses.add(new Pose(alliance.mirrorX(48+ROBOT_WIDTH_CM/(2.54*2)),ROBOT_LENGTH_CM/(2.54)+6, toRadians(270))); // shoot here
-        poses.add(new Pose(alliance.mirrorX(48+ROBOT_WIDTH_CM/(2.54*2)), ROBOT_LENGTH_CM/(2.54)+24,toRadians(270))); // park
+        poses.add(new Pose(ALLIANCE_COLOUR.mirrorX(48+ROBOT_WIDTH_CM/(2.54*2)), ROBOT_LENGTH_CM/(2.54),toRadians(270))); // start
+        poses.add(new Pose(ALLIANCE_COLOUR.mirrorX(48+ROBOT_WIDTH_CM/(2.54*2)),ROBOT_LENGTH_CM/(2.54)+6, toRadians(270))); // shoot here
+        poses.add(new Pose(ALLIANCE_COLOUR.mirrorX(60.0),84.0-24.0-20.0,toRadians(ALLIANCE_COLOUR.mirrorAngle(90)))); // start intaking here
+        poses.add(new Pose(ALLIANCE_COLOUR.mirrorX(20.0), 84.0-24.0-20.0, toRadians(ALLIANCE_COLOUR.mirrorAngle(90)))); // stop intaking here
+        poses.add(new Pose(ALLIANCE_COLOUR.mirrorX(48+ROBOT_WIDTH_CM/(2.54*2)), ROBOT_LENGTH_CM/(2.54)+6,toRadians(270))); // shoot here
+        poses.add(new Pose(ALLIANCE_COLOUR.mirrorX(9.0),84.0-24.0-6.0, toRadians(270))); // start getting 3 from edge
+        poses.add(new Pose(ALLIANCE_COLOUR.mirrorX(9.0),ROBOT_LENGTH_CM/(2.54), toRadians(270))); // go into far corner
+        poses.add(new Pose(ALLIANCE_COLOUR.mirrorX(48+ROBOT_WIDTH_CM/(2.54*2)),ROBOT_LENGTH_CM/(2.54)+6, toRadians(270))); // shoot here
+        poses.add(new Pose(ALLIANCE_COLOUR.mirrorX(48+ROBOT_WIDTH_CM/(2.54*2)), ROBOT_LENGTH_CM/(2.54)+24,toRadians(270))); // park
         ArrayList<Path> paths = new ArrayList<>();
         for (int i = 1; i< poses.size(); i++) {
             Path path = new Path(new BezierLine(poses.get(i - 1), poses.get(i)));
@@ -53,8 +52,8 @@ public class AutoFar extends LinearOpMode {
         }
         follower = Constants.createFollower(hardwareMap);
         follower.setStartingPose(poses.get(0));
-        shooter = new Shooter(hardwareMap, alliance, RobotConstants.ShootMode.FAR, true); // also hopefully make true
-        shooter.setSubRange(min(alliance.direction*90.0, 0.0), max(alliance.direction*90.0, 0.0));
+        shooter = new Shooter(hardwareMap, RobotConstants.ShootMode.FAR, true); // also hopefully make true
+        shooter.setSubRange(min(ALLIANCE_COLOUR.direction*90.0, 0.0), max(ALLIANCE_COLOUR.direction*90.0, 0.0));
         transferIntake = new TransferIntake(hardwareMap);
         while (!isStarted() && !isStopRequested()) { updateTelemetry(); }
         transferIntake.prepShooter();
@@ -71,7 +70,6 @@ public class AutoFar extends LinearOpMode {
             shoot();
         }
         follow(paths.get(7));
-        RobotState.ALLIANCE_COLOUR = alliance;
         RobotState.AUTO_END_POSE = follower.getPose();
     }
     private void follow(Path path) {
@@ -100,7 +98,7 @@ public class AutoFar extends LinearOpMode {
         updateTelemetry();
     }
     public void updateTelemetry() {
-        telemetry.addLine(alliance.toString());
+        telemetry.addLine(ALLIANCE_COLOUR.toString());
         telemetry.addLine(RobotState.displayNumToAttempt(attemptCount, RobotConstants.ShootMode.FAR));
         telemetry.addLine(shooter.toString());
         telemetry.addLine(transferIntake.toString());

@@ -38,13 +38,11 @@ public class Shooter {
     public boolean paused = false;
     public ShootMode shootMode;
     public float distanceOffset;
-    public Alliance alliance;
     public Double pinpointLocOffset = 0.0;
     public boolean usePinpointLoc;
 
-    public Shooter(HardwareMap hardwareMap, Alliance alliance, ShootMode shootMode, Boolean usePinpointLoc) {
-        limelight = new Limelight(hardwareMap, alliance.tagID);
-        this.alliance = alliance;
+    public Shooter(HardwareMap hardwareMap, ShootMode shootMode, Boolean usePinpointLoc) {
+        limelight = new Limelight(hardwareMap);
         this.shootMode = shootMode;
         this.usePinpointLoc = usePinpointLoc;
         turret[0] = hardwareMap.get(ServoImplEx.class, "t1");
@@ -82,7 +80,7 @@ public class Shooter {
         return -Math.atan2(Math.sin(rawDelta), Math.cos(rawDelta));
     }
     public void moveTurret(Follower follower) {
-        double angle = calculateAngleToPose(follower.getPose(), new Pose(alliance.mirrorX(12), 132,0));
+        double angle = calculateAngleToPose(follower.getPose(), new Pose(RobotState.ALLIANCE_COLOUR.mirrorX(12), 132,0));
         Optional<Double> turretReloc = limelight.update(follower);
         // TODO hopefully final += issue is here
         turretReloc.ifPresent(value -> pinpointLocOffset = value - angle);
