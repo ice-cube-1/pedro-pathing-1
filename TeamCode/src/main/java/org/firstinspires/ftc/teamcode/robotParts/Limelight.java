@@ -31,6 +31,7 @@ public class Limelight {
     private final List<Pose> relocalisationPoses = new ArrayList<>();
     public boolean tryRelocalise = false;
     public Pose latest = new Pose();
+    public List<Pose> filtered = new ArrayList<>();
 
     public Limelight(HardwareMap hardwareMap) {
         ll = hardwareMap.get(Limelight3A.class, "limelight");
@@ -55,7 +56,7 @@ public class Limelight {
                 double targetZ = pos.z - OFFSET * Math.cos(yaw);
                 lastDist = Math.sqrt(targetX * targetX + targetZ * targetZ);
                 lastAngle = Math.toDegrees(Math.atan2(targetX, targetZ));
-                return Optional.of(lastAngle);
+                return Optional.of(Math.atan2(targetX, targetZ));
             }
         }
         return Optional.empty();
@@ -71,6 +72,7 @@ public class Limelight {
         if (relocalisationPoses.size() >= 50) {
             tryRelocalise = false;
             List<Pose> filteredPoses = filterPoses(relocalisationPoses);
+            filtered = filteredPoses;
             latest = averagePoses(filteredPoses, follower);
             if (!filteredPoses.isEmpty()) follower.setPose(latest);
             relocalisationPoses.clear();
@@ -98,12 +100,12 @@ public class Limelight {
     }
     private Pose averagePoses(List<Pose> filteredPoses, Follower follower) {
         return new Pose(
-                filteredPoses.stream().mapToDouble(Pose::getX).average().orElse(0),
-                filteredPoses.stream().mapToDouble(Pose::getY).average().orElse(0),
+                filteredPoses.stream().mapToDouble(Pose::getX).average().orElse(10000000),
+                filteredPoses.stream().mapToDouble(Pose::getY).average().orElse(10000000),
                 follower.getHeading());
     }
     @NonNull
     public String toString() {
-        return String.format(Locale.UK, "---LIMELIGHT---\nDistance: %.3f, Angle: %.3f, Detection age: %.3f",lastDist, lastAngle, mostRecent);
+        return String.format(Locale.UK, "---LIMELIGHT---\nDistance: %.3f, Angle: %.3f, Detection age: %.3f",lastDist, lastAngle, mostRecent) + filtered;
     }
 }

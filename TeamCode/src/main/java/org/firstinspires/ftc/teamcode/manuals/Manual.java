@@ -49,7 +49,7 @@ public abstract class Manual extends LinearOpMode {
         follower = createFollower(hardwareMap);
         follower.setStartingPose(Debug.debugMode ? Debug.startPose() : position);
         follower.startTeleopDrive();
-        shooter = new Shooter(hardwareMap, alliance, RobotConstants.ShootMode.NEAR, useLoc);
+        shooter = new Shooter(hardwareMap, RobotConstants.ShootMode.NEAR, useLoc);
         transferIntake = new TransferIntake(hardwareMap);
         end.reset();
         while (!isStarted() && !isStopRequested()) { updateTelemetry(); }
