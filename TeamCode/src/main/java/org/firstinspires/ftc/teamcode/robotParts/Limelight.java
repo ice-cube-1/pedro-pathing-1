@@ -31,7 +31,6 @@ public class Limelight {
     private final List<Pose> relocalisationPoses = new ArrayList<>();
     public boolean tryRelocalise = false;
     public Pose latest = new Pose();
-    public List<Pose> filtered = new ArrayList<>();
 
     public Limelight(HardwareMap hardwareMap) {
         ll = hardwareMap.get(Limelight3A.class, "limelight");
@@ -72,7 +71,6 @@ public class Limelight {
         if (relocalisationPoses.size() >= 50) {
             tryRelocalise = false;
             List<Pose> filteredPoses = filterPoses(relocalisationPoses);
-            filtered = filteredPoses;
             latest = averagePoses(filteredPoses, follower);
             if (!filteredPoses.isEmpty()) follower.setPose(latest);
             relocalisationPoses.clear();
@@ -106,6 +104,6 @@ public class Limelight {
     }
     @NonNull
     public String toString() {
-        return String.format(Locale.UK, "---LIMELIGHT---\nDistance: %.3f, Angle: %.3f, Detection age: %.3f",lastDist, lastAngle, mostRecent) + filtered;
+        return String.format(Locale.UK, "---LIMELIGHT---\nDistance: %.3f, Angle: %.3f, Detection age: %.3f",lastDist, lastAngle, mostRecent);
     }
 }

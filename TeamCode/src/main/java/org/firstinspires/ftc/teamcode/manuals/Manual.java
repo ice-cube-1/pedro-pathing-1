@@ -56,7 +56,6 @@ public abstract class Manual extends LinearOpMode {
         while (opModeIsActive()) {
             if (end.seconds() > 150) break;
             follower.update();
-            // TODO this is wrong, and should be different for different alliances
             if (alliance == RobotConstants.Alliance.BLUE) {
                 follower.setTeleOpDrive(
                         -gamepad1.left_stick_y * MANUAL_MULTIPLIER,

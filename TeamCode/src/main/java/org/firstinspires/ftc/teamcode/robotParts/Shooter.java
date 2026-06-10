@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.robotParts;
 
+import com.bylazar.configurables.annotations.Configurable;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -12,14 +13,17 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 
 import static org.firstinspires.ftc.teamcode.robotParts.RobotConstants.*;
 
+import static java.lang.Math.PI;
 import static java.lang.Math.abs;
 import static java.lang.Math.toDegrees;
+import static java.lang.Math.toRadians;
 
 import androidx.annotation.NonNull;
 import java.util.Arrays;
 import java.util.Locale;
 import java.util.Optional;
 
+@Configurable
 public class Shooter {
     private final Limelight limelight;
     private final ServoImplEx[] turret = new ServoImplEx[2];
@@ -81,9 +85,7 @@ public class Shooter {
     }
     public void moveTurret(Follower follower) {
         double angle = calculateAngleToPose(follower.getPose(), new Pose(RobotState.ALLIANCE_COLOUR.mirrorX(12), 132,0));
-        Optional<Double> turretReloc = limelight.update(follower);
-        // TODO hopefully final += issue is here
-        turretReloc.ifPresent(value -> pinpointLocOffset = value - angle);
+        limelight.update(follower);
         switch (turretState) {
             case DETECTED:
                 if (timer.milliseconds() > limelight.mostRecent + 500) {
