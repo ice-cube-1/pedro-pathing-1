@@ -45,16 +45,16 @@ public class Auto12 extends LinearOpMode {
     public void runOpMode() {
         double[][] intakePositions = new double[][] {
                 // FAR IN point of each spike
-                {ALLIANCE_COLOUR.mirrorX(84.0-15.0), 24.0, toRadians(ALLIANCE_COLOUR.mirrorAngle(90))},
-                {ALLIANCE_COLOUR.mirrorX(60.0-15.0), 20.0, toRadians(ALLIANCE_COLOUR.mirrorAngle(90))},
-                {ALLIANCE_COLOUR.mirrorX(36.0-15.0), 20.0, toRadians(ALLIANCE_COLOUR.mirrorAngle(90))}
+                {ALLIANCE_COLOUR.mirrorX(24.0), 84.0-15.0, toRadians(ALLIANCE_COLOUR.mirrorAngle(90))},
+                {ALLIANCE_COLOUR.mirrorX(20.0), 60.0-15.0, toRadians(ALLIANCE_COLOUR.mirrorAngle(90))},
+                {ALLIANCE_COLOUR.mirrorX(20.0), 36.0-15.0, toRadians(ALLIANCE_COLOUR.mirrorAngle(90))}
         };
         Pose shootPos = new Pose(ALLIANCE_COLOUR.mirrorX(60.0), shooter_y, toRadians(270));
         Pose parkPos = new Pose(ALLIANCE_COLOUR.mirrorX(60.0), park_y, toRadians(270));
         curPos = new Pose(ALLIANCE_COLOUR.mirrorX(24+ROBOT_WIDTH_CM/(2.54*2)),144.0-ROBOT_LENGTH_CM/(2.54), toRadians(270));
         follower = Constants.createFollower(hardwareMap);
         follower.setStartingPose(curPos);
-        shooter = new Shooter(hardwareMap, RobotConstants.ShootMode.NEAR, true);
+        shooter = new Shooter(hardwareMap, RobotConstants.ShootMode.NEAR);
         shooter.setSubRange(min(ALLIANCE_COLOUR.direction*90.0, 0.0), max(ALLIANCE_COLOUR.direction*90.0, 0.0));
         transferIntake = new TransferIntake(hardwareMap);
         while (!isStarted() && !isStopRequested()) { updateTelemetry(); }
@@ -63,9 +63,9 @@ public class Auto12 extends LinearOpMode {
         move(shootPos);
         shoot();
         for (int i=0;i<attempt;i++){
-            move(new Pose(ALLIANCE_COLOUR.mirrorX(60.0), intakePositions[i][0], intakePositions[i][2]));
+            move(new Pose(ALLIANCE_COLOUR.mirrorX(60.0), intakePositions[i][1], intakePositions[i][2]));
             transferIntake.intake(1.0);
-            move(new Pose(intakePositions[i][1], intakePositions[i][0],intakePositions[i][2]));
+            move(new Pose(intakePositions[i][0], intakePositions[i][1],intakePositions[i][2]));
             transferIntake.intake(0.0);
             transferIntake.prepShooter();
             if (i == attempt-1) { move(parkPos); }
@@ -81,7 +81,6 @@ public class Auto12 extends LinearOpMode {
         while (opModeIsActive() && follower.isBusy() && timer.milliseconds() < 4000) {updateAll();}
     }
     private void shoot() {
-        shooter.relocaliseLL(); // delete if pathing goes weird
         timer.reset();
         while (opModeIsActive() && timer.milliseconds() < 4000) {
             updateAll();

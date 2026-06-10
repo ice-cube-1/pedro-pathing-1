@@ -50,7 +50,7 @@ public class RobotConstants {
             this.str = str;
         }
         public double mirrorAngle(double angle) { return angle * (1 - direction); }
-        public double mirrorX(double x) { return offset - direction - x; }
+        public double mirrorX(double x) { return offset - direction * x; }
         @NonNull
         public String toString() { return this.str; }
     }

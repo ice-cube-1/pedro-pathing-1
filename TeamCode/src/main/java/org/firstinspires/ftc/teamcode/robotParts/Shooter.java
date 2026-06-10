@@ -42,13 +42,10 @@ public class Shooter {
     public boolean paused = false;
     public ShootMode shootMode;
     public float distanceOffset;
-    public Double pinpointLocOffset = 0.0;
-    public boolean usePinpointLoc;
 
-    public Shooter(HardwareMap hardwareMap, ShootMode shootMode, Boolean usePinpointLoc) {
+    public Shooter(HardwareMap hardwareMap, ShootMode shootMode) {
         limelight = new Limelight(hardwareMap);
         this.shootMode = shootMode;
-        this.usePinpointLoc = usePinpointLoc;
         turret[0] = hardwareMap.get(ServoImplEx.class, "t1");
         turret[0].setPosition(0.5);
         turret[1] = hardwareMap.get(ServoImplEx.class, "t2");
@@ -76,7 +73,6 @@ public class Shooter {
         }
         return SHOOTER_IDLE_VELOCITY;
     }
-    public void relocaliseLL() { limelight.tryRelocalise = true; }
     public static double calculateAngleToPose(Pose robot, Pose target) {
         double dx = target.getX() - robot.getX();
         double dy = target.getY() - robot.getY();
@@ -89,6 +85,7 @@ public class Shooter {
         switch (turretState) {
             case DETECTED:
                 if (timer.milliseconds() > limelight.mostRecent + 500) {
+                    gotoPos = (toDegrees(angle) - getTurretAngle() > 0) ? turretMin : turretMax;
                     turretState = TurretState.WRAPPING;
                 } else if (abs(limelight.lastAngle) > 1.0) {
                     nextPos = limelight.lastAngle * shootMode.detectedKP + getTurretAngle();
@@ -98,14 +95,7 @@ public class Shooter {
                 if (timer.milliseconds() < limelight.mostRecent + 500) {
                     turretState = TurretState.DETECTED;
                 } else {
-                    if ((usePinpointLoc && !Debug.debugMode) || (Debug.debugMode && Debug.usePinpointLoc)) {
-                        gotoPos = toDegrees(angle + pinpointLocOffset);
-                        if (abs(gotoPos - nextPos) > 2.0) {
-                            nextPos = (gotoPos - getTurretAngle() > 0 ? shootMode.wrappingStep : -shootMode.wrappingStep) + getTurretAngle();
-                        }
-                    } else {
-                        nextPos = (gotoPos - getTurretAngle() > 0 ? shootMode.wrappingStep : -shootMode.wrappingStep) + getTurretAngle();
-                    }
+                    nextPos = (gotoPos - getTurretAngle() > 0 ? shootMode.wrappingStep : -shootMode.wrappingStep) + getTurretAngle();
                 }
                 break;
         }
@@ -134,6 +124,12 @@ public class Shooter {
     public void setSubRange(double min, double max) {
         turretMin = min;
         turretMax = max;
+    }
+
+    public void reverseTurret() {
+        if (gotoPos == turretMin) {
+            gotoPos = turretMax;
+        } else gotoPos = turretMin;
     }
 
     public void toggleFromFar() {
@@ -171,7 +167,7 @@ public class Shooter {
     }
     @NonNull
     public String toString() {
-        return String.format(Locale.UK, "---TURRET---\nCurrently %s\nAt position %.3f, going to %.3f, localisation offset %.3f (using localisation for turret tracking = %b)", turretState, getTurretAngle(), nextPos, pinpointLocOffset, usePinpointLoc) +
+        return String.format(Locale.UK, "---TURRET---\nCurrently %s\nAt position %.3f, going to %.3f", turretState, getTurretAngle(), nextPos) +
                 String.format(Locale.UK, "---SHOOTER---\nCurrently %s, mode: %s\nTarget power: %.0f, encoder readings: (%.0f, %.0f)\nOffset: %.3f(mode) + %.3f(manual)",
                         shooterOn ? "on" : "off", shootMode, power, motors[0].getVelocity(), motors[1].getVelocity(), shootMode.distanceOffset, distanceOffset) + limelight +"\n";
     }

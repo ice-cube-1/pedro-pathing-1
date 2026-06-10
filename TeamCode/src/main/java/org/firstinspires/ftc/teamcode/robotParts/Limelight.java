@@ -41,7 +41,6 @@ public class Limelight {
     public Optional<Double> update(Follower follower) {
         LLResult result = ll.getLatestResult();
         if (result == null || !result.isValid()) return Optional.empty();
-        relocaliseTranslation(result, follower);
         return findDistAngle(result);
     }
     private Optional<Double> findDistAngle(LLResult result) {
@@ -59,22 +58,6 @@ public class Limelight {
             }
         }
         return Optional.empty();
-    }
-    private void relocaliseTranslation(LLResult result, Follower follower) {
-        if (tryRelocalise || (Debug.debugMode && Debug.tryRelocalise)) {
-            if (Math.abs(follower.getAngularVelocity()) > 1) {
-                tryRelocalise = false;
-                relocalisationPoses.clear();
-            }
-            relocalisationPoses.add(convertLLToPose(result.getBotpose(), follower));
-        }
-        if (relocalisationPoses.size() >= 50) {
-            tryRelocalise = false;
-            List<Pose> filteredPoses = filterPoses(relocalisationPoses);
-            latest = averagePoses(filteredPoses, follower);
-            if (!filteredPoses.isEmpty()) follower.setPose(latest);
-            relocalisationPoses.clear();
-        }
     }
     private Pose convertLLToPose(Pose3D limelightPose, Follower follower) {
         double xInches = limelightPose.getPosition().x * 39.3701;

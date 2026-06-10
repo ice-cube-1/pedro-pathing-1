@@ -49,7 +49,7 @@ public abstract class Manual extends LinearOpMode {
         follower = createFollower(hardwareMap);
         follower.setStartingPose(Debug.debugMode ? Debug.startPose() : position);
         follower.startTeleopDrive();
-        shooter = new Shooter(hardwareMap, RobotConstants.ShootMode.NEAR, useLoc);
+        shooter = new Shooter(hardwareMap, RobotConstants.ShootMode.NEAR);
         transferIntake = new TransferIntake(hardwareMap);
         end.reset();
         while (!isStarted() && !isStopRequested()) { updateTelemetry(); }
@@ -91,8 +91,8 @@ public abstract class Manual extends LinearOpMode {
                 shooter.distanceOffset -= 0.1F;
                 dpadTimer.reset();
             }
-            if (gamepad1.a && dpadTimer.milliseconds() > 200) { // toggle turret tracking modes
-                shooter.usePinpointLoc = !shooter.usePinpointLoc;
+            if (gamepad1.a && dpadTimer.milliseconds() > 200) { // reverse turret direction
+                shooter.reverseTurret();
                 dpadTimer.reset();
             }
             if (gamepad1.x && dpadTimer.milliseconds() > 200) { // switch between near and far zone
@@ -101,10 +101,6 @@ public abstract class Manual extends LinearOpMode {
             }
             if (gamepad1.y && dpadTimer.milliseconds() > 200) { //pause turret movement
                 shooter.pauseTurret();
-                dpadTimer.reset();
-            }
-            if (gamepad1.b && dpadTimer.milliseconds() > 200 && useLoc) { // relocalise limelight
-                shooter.relocaliseLL();
                 dpadTimer.reset();
             }
             if (robotState == RobotState.INTAKE) {
