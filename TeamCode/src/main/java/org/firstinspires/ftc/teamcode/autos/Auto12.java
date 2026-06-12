@@ -62,6 +62,7 @@ public class Auto12 extends LinearOpMode {
         transferIntake.prepShooter();
         move(shootPos);
         shoot();
+        sleep(100);
         for (int i=0;i<attempt;i++){
             move(new Pose(ALLIANCE_COLOUR.mirrorX(60.0), intakePositions[i][1], intakePositions[i][2]));
             transferIntake.intake(1.0);
@@ -71,6 +72,7 @@ public class Auto12 extends LinearOpMode {
             if (i == attempt-1) { move(parkPos); }
             else { move(shootPos); }
             shoot();
+            sleep(100);
         }
         move(parkPos);
         RobotState.AUTO_END_POSE = follower.getPose();
