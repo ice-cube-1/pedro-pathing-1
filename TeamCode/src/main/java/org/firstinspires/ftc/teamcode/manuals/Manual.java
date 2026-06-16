@@ -23,7 +23,6 @@ public abstract class Manual extends LinearOpMode {
 
     private final Pose position;
     private final RobotConstants.Alliance alliance;
-    private final boolean useLoc;
 
     private Shooter shooter;
     private TransferIntake transferIntake;
@@ -38,8 +37,7 @@ public abstract class Manual extends LinearOpMode {
     private final ElapsedTime dpadTimer = new ElapsedTime();
     private final ElapsedTime end = new ElapsedTime();
 
-    public Manual(Pose start, RobotConstants.Alliance alliance, boolean useLoc) {
-        this.useLoc = useLoc;
+    public Manual(Pose start, RobotConstants.Alliance alliance) {
         this.position = start;
         this.alliance = alliance;
     }

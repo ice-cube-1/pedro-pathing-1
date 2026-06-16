@@ -35,6 +35,7 @@ public class AutoFar extends LinearOpMode {
     public void runOpMode()  {
         ArrayList<Pose> poses = new ArrayList<>();
         // all of these need checking icl
+        // run it and see what needs changing, then run manual put "auto end pose" as start pose (so the first one), and manually drive to the relevant positions
         poses.add(new Pose(ALLIANCE_COLOUR.mirrorX(48+ROBOT_WIDTH_CM/(2.54*2)), ROBOT_LENGTH_CM/(2.54),toRadians(270))); // start
         poses.add(new Pose(ALLIANCE_COLOUR.mirrorX(48+ROBOT_WIDTH_CM/(2.54*2)),ROBOT_LENGTH_CM/(2.54)+6, toRadians(270))); // shoot here
         poses.add(new Pose(ALLIANCE_COLOUR.mirrorX(60.0),84.0-24.0-20.0,toRadians(ALLIANCE_COLOUR.mirrorAngle(90)))); // start intaking here
