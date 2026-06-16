@@ -28,21 +28,26 @@ public class Zeroing extends LinearOpMode {
         double sPos =0.0;
         while (opModeIsActive()) {
             if (gamepad1.dpad_left) {
-                turret[0].setPosition(TURRET_KP);
-                turret[1].setPosition(TURRET_KP);
+                if (gamepad1.left_bumper) {
+                    turret[0].setPosition(0.5);
+                    turret[1].setPosition(0.5);
+                }
                 telemetry.addData("position",TURRET_KP);
+                telemetry.addLine("left bumper to ZERO TURRET");
                 telemetry.update();
             } if (gamepad1.dpad_right) {
                 hood.setPosition(sPos);
                 if (gamepad1.left_bumper) {sPos = HOOD_ANGLE; }
                 if (gamepad1.right_bumper) {sPos = 0.0; }
                 telemetry.addData("hood angle",sPos);
+                telemetry.addLine("hood down - left bumper, hood up - right bumper");
                 telemetry.update();
             } if (gamepad1.dpad_down) {
                 stop.setPosition(sPos);
                 if (gamepad1.left_bumper) {sPos = STOP_DOWN; }
                 if (gamepad1.right_bumper) {sPos = STOP_UP; }
                 telemetry.addData("stop angle",sPos);
+                telemetry.addLine("kickarm down - left bumper, kickarm up - right bumper");
                 telemetry.update();
             }
         }

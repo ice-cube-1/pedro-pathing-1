@@ -85,6 +85,7 @@ public class Shooter {
         switch (turretState) {
             case DETECTED:
                 if (timer.milliseconds() > limelight.mostRecent + 500) {
+                    // comment out the below line if it's acting up
                     gotoPos = (toDegrees(angle) - getTurretAngle() > 0) ? turretMin : turretMax;
                     turretState = TurretState.WRAPPING;
                 } else if (abs(limelight.lastAngle) > 1.0) {
