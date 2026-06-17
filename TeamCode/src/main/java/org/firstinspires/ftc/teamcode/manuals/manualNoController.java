@@ -47,7 +47,7 @@ public class manualNoController extends LinearOpMode {
                 -----TESTS-----
                 DRIVETRAIN TEST
                 change power x,y,z for forward, strafe, turn, and timer for how long to do it for
-                when the timer is updated the action will start, timer is in MILLISECONDS
+                when the timer is updated the action will start, timer is in milliseconds
                 this is robot centric, but just a boolean, so change if you want
                 SHOOTER TEST
                 change debug mode to true (should be under debug) to test the shooter - it's off otherwise in this mode for noise reasons
