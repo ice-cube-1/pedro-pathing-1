@@ -6,11 +6,10 @@ import static org.firstinspires.ftc.teamcode.robotParts.RobotConstants.STOP_UP;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
-import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.teamcode.robotParts.TransferIntake;
 
 
-@TeleOp
+@TeleOp(name = "transfer intake test", group = "tuning")
 public class TransferTest extends LinearOpMode {
     @Override
     public void runOpMode() {

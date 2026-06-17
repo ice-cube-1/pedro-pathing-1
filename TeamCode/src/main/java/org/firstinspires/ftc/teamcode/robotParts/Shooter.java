@@ -1,5 +1,8 @@
 package org.firstinspires.ftc.teamcode.robotParts;
 
+import com.bylazar.configurables.annotations.Configurable;
+import com.pedropathing.follower.Follower;
+import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
@@ -10,15 +13,18 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 
 import static org.firstinspires.ftc.teamcode.robotParts.RobotConstants.*;
 
+import static java.lang.Math.PI;
+import static java.lang.Math.abs;
+import static java.lang.Math.toDegrees;
+import static java.lang.Math.toRadians;
+
+import androidx.annotation.NonNull;
 import java.util.Arrays;
+import java.util.Locale;
+import java.util.Optional;
 
+@Configurable
 public class Shooter {
-
-    public enum TurretState {
-        DETECTED,
-        WRAPPING
-    }
-
     private final Limelight limelight;
     private final ServoImplEx[] turret = new ServoImplEx[2];
     private final Servo hoodAngle;
@@ -37,8 +43,8 @@ public class Shooter {
     public ShootMode shootMode;
     public float distanceOffset;
 
-    public Shooter(HardwareMap hardwareMap, int tagID, ShootMode shootMode) {
-        limelight = new Limelight(hardwareMap, tagID);
+    public Shooter(HardwareMap hardwareMap, ShootMode shootMode) {
+        limelight = new Limelight(hardwareMap);
         this.shootMode = shootMode;
         turret[0] = hardwareMap.get(ServoImplEx.class, "t1");
         turret[0].setPosition(0.5);
@@ -53,25 +59,36 @@ public class Shooter {
     }
 
     public boolean canShoot() {
-        return Math.abs(limelight.lastAngle) < 4 && turretState == TurretState.DETECTED || paused;
+        return (abs(limelight.lastAngle) < 4 && turretState == TurretState.DETECTED) || paused;
     }
 
     private int getTargetVelocity() {
+        if (Debug.debugMode) {
+            hoodAngle.setPosition(Debug.hoodAngle);
+            return Debug.shooterVelocity;
+        }
         hoodAngle.setPosition(shootMode.hoodPos);
         if (shooterOn) {
             return (int) (177.92 * (limelight.lastDist + shootMode.distanceOffset + distanceOffset) + 937.31);
-        } else {
-            return SHOOTER_IDLE_VELOCITY;
         }
+        return SHOOTER_IDLE_VELOCITY;
     }
-
-    public void moveTurret() {
-        limelight.update();
+    public static double calculateAngleToPose(Pose robot, Pose target) {
+        double dx = target.getX() - robot.getX();
+        double dy = target.getY() - robot.getY();
+        double rawDelta = Math.atan2(dy, dx) - robot.getHeading();
+        return -Math.atan2(Math.sin(rawDelta), Math.cos(rawDelta));
+    }
+    public void moveTurret(Follower follower) {
+        double angle = calculateAngleToPose(follower.getPose(), new Pose(RobotState.ALLIANCE_COLOUR.mirrorX(12), 132,0));
+        limelight.update(follower);
         switch (turretState) {
             case DETECTED:
                 if (timer.milliseconds() > limelight.mostRecent + 500) {
+                    // comment out the below line if it's acting up
+                    gotoPos = (toDegrees(angle) - getTurretAngle() > 0) ? turretMin : turretMax;
                     turretState = TurretState.WRAPPING;
-                } else if (Math.abs(limelight.lastAngle) > 1.0) {
+                } else if (abs(limelight.lastAngle) > 1.0) {
                     nextPos = limelight.lastAngle * shootMode.detectedKP + getTurretAngle();
                 }
                 break;
@@ -83,6 +100,7 @@ public class Shooter {
                 }
                 break;
         }
+
         if (!paused) {
             if (nextPos >= turretMax) {
                 gotoPos = turretMin;
@@ -93,8 +111,6 @@ public class Shooter {
             }
         }
     }
-
-    public void reverseGoto() { gotoPos = (gotoPos > 0) ? turretMin : turretMax; }
     public void pauseTurret(){ paused = !paused; }
     private double getTurretAngle() {
         return ((turret[0].getPosition() + turret[1].getPosition()) / 2.0) * TURRET_MAX_DEGREES - TURRET_ZERO_DEG;
@@ -109,6 +125,12 @@ public class Shooter {
     public void setSubRange(double min, double max) {
         turretMin = min;
         turretMax = max;
+    }
+
+    public void reverseTurret() {
+        if (gotoPos == turretMin) {
+            gotoPos = turretMax;
+        } else gotoPos = turretMin;
     }
 
     public void toggleFromFar() {
@@ -142,22 +164,14 @@ public class Shooter {
         double errorV = targetV - currentV;
         power = Math.max(0.0, Math.min(1.0, KP_SHOOTER * errorV + targetV * K_FF + KFF_INTERCEPT));
         for (DcMotorEx m : motors) { m.setPower(power); }
-        atSpeed = Math.abs(errorV) < 40;
+        atSpeed = abs(errorV) < 40;
     }
-
-    public String getData() {
-        return "Turret state: " + turretState +
-                ", last tag range = " + limelight.lastDist +
-                ", bearing = " + limelight.lastAngle + "\n" +
-                "Turret current position " + getTurretAngle() +
-                ", going to " + gotoPos + "\n" +
-                "Shooter target: " + targetV +
-                "power " + power + "\n" +
-                "actually going at " +
-                motors[0].getVelocity() + ", " + motors[1].getVelocity() + "\n" +
-                "OFFSET - " + shootMode.distanceOffset + " m\nservo position "+hoodAngle.getPosition();
+    @NonNull
+    public String toString() {
+        return String.format(Locale.UK, "---TURRET---\nCurrently %s\nAt position %.3f, going to %.3f", turretState, getTurretAngle(), nextPos) +
+                String.format(Locale.UK, "---SHOOTER---\nCurrently %s, mode: %s\nTarget power: %.0f, encoder readings: (%.0f, %.0f)\nOffset: %.3f(mode) + %.3f(manual)",
+                        shooterOn ? "on" : "off", shootMode, power, motors[0].getVelocity(), motors[1].getVelocity(), shootMode.distanceOffset, distanceOffset) + limelight +"\n";
     }
-
     public DcMotorEx init_motor(String name, HardwareMap hardwareMap, DcMotorSimple.Direction direction) {
         DcMotorEx drive = hardwareMap.get(DcMotorEx.class, name);
         drive.setDirection(direction);

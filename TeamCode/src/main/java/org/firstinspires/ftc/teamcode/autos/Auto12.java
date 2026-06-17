@@ -1,7 +1,8 @@
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.autos;
 
 import static org.firstinspires.ftc.teamcode.robotParts.RobotConstants.ROBOT_LENGTH_CM;
 import static org.firstinspires.ftc.teamcode.robotParts.RobotConstants.ROBOT_WIDTH_CM;
+import static org.firstinspires.ftc.teamcode.robotParts.RobotState.ALLIANCE_COLOUR;
 import static java.lang.Double.max;
 import static java.lang.Math.min;
 import static java.lang.Math.toRadians;
@@ -16,10 +17,9 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.teamcode.robotParts.RobotConstants;
+import org.firstinspires.ftc.teamcode.robotParts.RobotState;
 import org.firstinspires.ftc.teamcode.robotParts.Shooter;
 import org.firstinspires.ftc.teamcode.robotParts.TransferIntake;
-
-import java.util.Arrays;
 
 @Configurable
 public class Auto12 extends LinearOpMode {
@@ -27,12 +27,10 @@ public class Auto12 extends LinearOpMode {
     private Shooter shooter;
     private TransferIntake transferIntake;
     private final ElapsedTime timer = new ElapsedTime();
-    private final RobotConstants.Alliance alliance;
     private final int attempt;
     public static double shooter_y = 80.0;
     public static double park_y = 105.0 - 12.0;
-    public Auto12(RobotConstants.Alliance alliance, int numToAttempt) {
-        this.alliance = alliance;
+    public Auto12(int numToAttempt) {
         this.attempt = numToAttempt;
     }
     private Pose curPos;
@@ -46,34 +44,38 @@ public class Auto12 extends LinearOpMode {
     @Override
     public void runOpMode() {
         double[][] intakePositions = new double[][] {
-                {alliance.mirrorX(84.0-15.0), 24.0, toRadians(alliance.mirrorAngle(90))},
-                {alliance.mirrorX(60.0-15.0), 20.0, toRadians(alliance.mirrorAngle(90))},
-                {alliance.mirrorX(36.0-15.0), 20.0, toRadians(alliance.mirrorAngle(90))}
+                // FAR IN point of each spike
+                {ALLIANCE_COLOUR.mirrorX(24.0), 84.0-15.0, toRadians(ALLIANCE_COLOUR.mirrorAngle(90))},
+                {ALLIANCE_COLOUR.mirrorX(20.0), 60.0-15.0, toRadians(ALLIANCE_COLOUR.mirrorAngle(90))},
+                {ALLIANCE_COLOUR.mirrorX(20.0), 36.0-15.0, toRadians(ALLIANCE_COLOUR.mirrorAngle(90))}
         };
-        Pose shootPos = new Pose(alliance.mirrorX(60.0), shooter_y, toRadians(270));
-        Pose parkPos = new Pose(alliance.mirrorX(60.0), park_y, toRadians(270));
-        curPos = new Pose(alliance.mirrorX(24+ROBOT_WIDTH_CM/(2.54*2)),144.0-ROBOT_LENGTH_CM/(2.54), toRadians(270));
+        Pose shootPos = new Pose(ALLIANCE_COLOUR.mirrorX(60.0), shooter_y, toRadians(270));
+        Pose parkPos = new Pose(ALLIANCE_COLOUR.mirrorX(60.0), park_y, toRadians(270));
+        curPos = new Pose(ALLIANCE_COLOUR.mirrorX(24+ROBOT_WIDTH_CM/(2.54*2)),144.0-ROBOT_LENGTH_CM/(2.54), toRadians(270));
         follower = Constants.createFollower(hardwareMap);
         follower.setStartingPose(curPos);
-        shooter = new Shooter(hardwareMap, alliance.tagID, RobotConstants.ShootMode.NEAR);
-        shooter.setSubRange(min(alliance.direction*90.0, 0.0), max(alliance.direction*90.0, 0.0));
+        shooter = new Shooter(hardwareMap, RobotConstants.ShootMode.NEAR);
+        shooter.setSubRange(min(ALLIANCE_COLOUR.direction*90.0, 0.0), max(ALLIANCE_COLOUR.direction*90.0, 0.0));
         transferIntake = new TransferIntake(hardwareMap);
-        waitForStart();
+        while (!isStarted() && !isStopRequested()) { updateTelemetry(); }
         shooter.turnOnShooter();
         transferIntake.prepShooter();
         move(shootPos);
         shoot();
+        sleep(100);
         for (int i=0;i<attempt;i++){
-            move(new Pose(alliance.mirrorX(60.0), intakePositions[i][0], intakePositions[i][2]));
+            move(new Pose(ALLIANCE_COLOUR.mirrorX(60.0), intakePositions[i][1], intakePositions[i][2]));
             transferIntake.intake(1.0);
-            move(new Pose(intakePositions[i][1], intakePositions[i][0],intakePositions[i][2]));
+            move(new Pose(intakePositions[i][0], intakePositions[i][1],intakePositions[i][2]));
             transferIntake.intake(0.0);
             transferIntake.prepShooter();
             if (i == attempt-1) { move(parkPos); }
             else { move(shootPos); }
             shoot();
+            sleep(100);
         }
         move(parkPos);
+        RobotState.AUTO_END_POSE = follower.getPose();
     }
     private void follow(Path path) {
         timer.reset();
@@ -94,13 +96,18 @@ public class Auto12 extends LinearOpMode {
         transferIntake.shoot(false);
     }
     private void updateAll() {
-        shooter.moveTurret();
+        shooter.moveTurret(follower);
         shooter.spin();
         transferIntake.update();
         follower.update();
-        telemetry.addLine(shooter.getData());
-        telemetry.addLine(transferIntake.getData());
-        telemetry.addLine(Arrays.toString(follower.debug()));
+        updateTelemetry();
+    }
+    public void updateTelemetry() {
+        telemetry.addLine(ALLIANCE_COLOUR.toString());
+        telemetry.addLine(RobotState.displayNumToAttempt(attempt, RobotConstants.ShootMode.NEAR));
+        telemetry.addLine(shooter.toString());
+        telemetry.addLine(transferIntake.toString());
+        telemetry.addLine(follower.getPose().toString());
         telemetry.update();
     }
 }

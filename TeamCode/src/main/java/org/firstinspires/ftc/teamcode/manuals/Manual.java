@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.manuals;
 
 import static org.firstinspires.ftc.teamcode.pedroPathing.Constants.createFollower;
 import static org.firstinspires.ftc.teamcode.robotParts.RobotConstants.MANUAL_MULTIPLIER;
@@ -8,6 +8,7 @@ import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.teamcode.robotParts.Debug;
 import org.firstinspires.ftc.teamcode.robotParts.RobotConstants;
 import org.firstinspires.ftc.teamcode.robotParts.Shooter;
 import org.firstinspires.ftc.teamcode.robotParts.TransferIntake;
@@ -20,8 +21,8 @@ public abstract class Manual extends LinearOpMode {
         SHOOTER_ON
     }
 
-    private final double orientation;
-    private final int tag;
+    private final Pose position;
+    private final RobotConstants.Alliance alliance;
 
     private Shooter shooter;
     private TransferIntake transferIntake;
@@ -36,29 +37,38 @@ public abstract class Manual extends LinearOpMode {
     private final ElapsedTime dpadTimer = new ElapsedTime();
     private final ElapsedTime end = new ElapsedTime();
 
-    public Manual(double orientation, int tag) {
-        this.orientation = orientation;
-        this.tag = tag;
+    public Manual(Pose start, RobotConstants.Alliance alliance) {
+        this.position = start;
+        this.alliance = alliance;
     }
 
     @Override
     public void runOpMode() {
         follower = createFollower(hardwareMap);
-        follower.setStartingPose(new Pose(0,0,orientation));
-        waitForStart();
+        follower.setStartingPose(Debug.debugMode ? Debug.startPose() : position);
         follower.startTeleopDrive();
-        shooter = new Shooter(hardwareMap, tag, RobotConstants.ShootMode.NEAR);
+        shooter = new Shooter(hardwareMap, RobotConstants.ShootMode.NEAR);
         transferIntake = new TransferIntake(hardwareMap);
         end.reset();
+        while (!isStarted() && !isStopRequested()) { updateTelemetry(); }
         while (opModeIsActive()) {
             if (end.seconds() > 150) break;
             follower.update();
-            follower.setTeleOpDrive(
-                    -gamepad1.left_stick_y * MANUAL_MULTIPLIER,
-                    -gamepad1.left_stick_x * MANUAL_MULTIPLIER,
-                    -gamepad1.right_stick_x * MANUAL_MULTIPLIER * 0.7,
-                    false
-            );
+            if (alliance == RobotConstants.Alliance.BLUE) {
+                follower.setTeleOpDrive(
+                        -gamepad1.left_stick_y * MANUAL_MULTIPLIER,
+                        -gamepad1.left_stick_x * MANUAL_MULTIPLIER,
+                        -gamepad1.right_stick_x * MANUAL_MULTIPLIER * 0.7,
+                        false
+                );
+            } else {
+                follower.setTeleOpDrive(
+                        gamepad1.left_stick_y * MANUAL_MULTIPLIER,
+                        gamepad1.left_stick_x * MANUAL_MULTIPLIER,
+                        -gamepad1.right_stick_x * MANUAL_MULTIPLIER * 0.7,
+                        false
+                );
+            }
             if (gamepad1.left_bumper && timer.milliseconds() > timeToEnd) {
                 robotState = RobotState.SHOOTER_SPIN_UP;
                 transferIntake.prepShooter();
@@ -72,18 +82,18 @@ public abstract class Manual extends LinearOpMode {
                 timeToEnd = timer.milliseconds() + 200;
             }
             if (gamepad1.dpad_up && dpadTimer.milliseconds() > 200) {
-                shooter.distanceOffset += 0.1;
+                shooter.distanceOffset += 0.1F;
                 dpadTimer.reset();
             }
             if (gamepad1.dpad_down && dpadTimer.milliseconds() > 200) {
-                shooter.distanceOffset -= 0.1;
+                shooter.distanceOffset -= 0.1F;
                 dpadTimer.reset();
             }
-            if (gamepad1.a && dpadTimer.milliseconds() > 200) {
-                shooter.reverseGoto();
+            if (gamepad1.a && dpadTimer.milliseconds() > 200) { // reverse turret direction
+                shooter.reverseTurret();
                 dpadTimer.reset();
             }
-            if (gamepad1.x && dpadTimer.milliseconds() > 200) {
+            if (gamepad1.x && dpadTimer.milliseconds() > 200) { // switch between near and far zone
                 shooter.toggleFromFar();
                 dpadTimer.reset();
             }
@@ -106,12 +116,16 @@ public abstract class Manual extends LinearOpMode {
                 transferIntake.shoot(true);
             }
             transferIntake.update();
-            shooter.moveTurret();
-            telemetry.addData("shooting from far:", shooter.shootMode);
+            shooter.moveTurret(follower);
             shooter.spin();
-            telemetry.addLine(shooter.getData());
-            telemetry.addLine(transferIntake.getData());
-            telemetry.update();
+            updateTelemetry();
         }
+    }
+    public void updateTelemetry() {
+        telemetry.addLine(alliance.toString());
+        telemetry.addLine(shooter.toString());
+        telemetry.addLine(transferIntake.toString());
+        telemetry.addLine(follower.getPose().toString());
+        telemetry.update();
     }
 }

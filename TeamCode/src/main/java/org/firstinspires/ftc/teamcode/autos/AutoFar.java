@@ -1,7 +1,8 @@
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.autos;
 
 import static org.firstinspires.ftc.teamcode.robotParts.RobotConstants.ROBOT_LENGTH_CM;
 import static org.firstinspires.ftc.teamcode.robotParts.RobotConstants.ROBOT_WIDTH_CM;
+import static org.firstinspires.ftc.teamcode.robotParts.RobotState.ALLIANCE_COLOUR;
 import static java.lang.Double.max;
 import static java.lang.Math.min;
 import static java.lang.Math.toRadians;
@@ -15,35 +16,35 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.teamcode.robotParts.RobotConstants;
+import org.firstinspires.ftc.teamcode.robotParts.RobotState;
 import org.firstinspires.ftc.teamcode.robotParts.Shooter;
 import org.firstinspires.ftc.teamcode.robotParts.TransferIntake;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 
 public class AutoFar extends LinearOpMode {
     private Follower follower;
     private Shooter shooter;
     private TransferIntake transferIntake;
     private final ElapsedTime timer = new ElapsedTime();
-    private final RobotConstants.Alliance alliance;
     private final int attemptCount;
 
-    public AutoFar(RobotConstants.Alliance alliance, int attemptCount) {
+    public AutoFar(int attemptCount) {
         this.attemptCount = attemptCount;
-        this.alliance = alliance;
     }
     public void runOpMode()  {
         ArrayList<Pose> poses = new ArrayList<>();
-        poses.add(new Pose(alliance.mirrorX(48+ROBOT_WIDTH_CM/(2.54*2)), ROBOT_LENGTH_CM/(2.54),toRadians(270)));
-        poses.add(new Pose(alliance.mirrorX(48+ROBOT_WIDTH_CM/(2.54*2)),ROBOT_LENGTH_CM/(2.54)+6, toRadians(270))); // shoot here
-        poses.add(new Pose(alliance.mirrorX(60.0),84.0-24.0-20.0,toRadians(alliance.mirrorAngle(90)))); // start intaking here
-        poses.add(new Pose(alliance.mirrorX(20.0), 84.0-24.0-20.0, toRadians(alliance.mirrorAngle(90)))); // stop intaking here
-        poses.add(new Pose(alliance.mirrorX(48+ROBOT_WIDTH_CM/(2.54*2)), ROBOT_LENGTH_CM/(2.54)+6,toRadians(270))); // shoot here
-        poses.add(new Pose(alliance.mirrorX(9.0),84.0-24.0-6.0, toRadians(270)));
-        poses.add(new Pose(alliance.mirrorX(9.0),ROBOT_LENGTH_CM/(2.54), toRadians(270)));
-        poses.add(new Pose(alliance.mirrorX(48+ROBOT_WIDTH_CM/(2.54*2)),ROBOT_LENGTH_CM/(2.54)+6, toRadians(270))); // shoot here
-        poses.add(new Pose(alliance.mirrorX(48+ROBOT_WIDTH_CM/(2.54*2)), ROBOT_LENGTH_CM/(2.54)+24,toRadians(270))); // park
+        // all of these need checking icl
+        // run it and see what needs changing, then run manual put "auto end pose" as start pose (so the first one), and manually drive to the relevant positions
+        poses.add(new Pose(ALLIANCE_COLOUR.mirrorX(48+ROBOT_WIDTH_CM/(2.54*2)), ROBOT_LENGTH_CM/(2.54),toRadians(270))); // start
+        poses.add(new Pose(ALLIANCE_COLOUR.mirrorX(48+ROBOT_WIDTH_CM/(2.54*2)),ROBOT_LENGTH_CM/(2.54)+6, toRadians(270))); // shoot here
+        poses.add(new Pose(ALLIANCE_COLOUR.mirrorX(60.0),84.0-24.0-20.0,toRadians(ALLIANCE_COLOUR.mirrorAngle(90)))); // start intaking here
+        poses.add(new Pose(ALLIANCE_COLOUR.mirrorX(20.0), 84.0-24.0-20.0, toRadians(ALLIANCE_COLOUR.mirrorAngle(90)))); // stop intaking here
+        poses.add(new Pose(ALLIANCE_COLOUR.mirrorX(48+ROBOT_WIDTH_CM/(2.54*2)), ROBOT_LENGTH_CM/(2.54)+6,toRadians(270))); // shoot here
+        poses.add(new Pose(ALLIANCE_COLOUR.mirrorX(9.0),84.0-24.0-6.0, toRadians(270))); // start getting 3 from edge
+        poses.add(new Pose(ALLIANCE_COLOUR.mirrorX(9.0),ROBOT_LENGTH_CM/(2.54), toRadians(270))); // go into far corner
+        poses.add(new Pose(ALLIANCE_COLOUR.mirrorX(48+ROBOT_WIDTH_CM/(2.54*2)),ROBOT_LENGTH_CM/(2.54)+6, toRadians(270))); // shoot here
+        poses.add(new Pose(ALLIANCE_COLOUR.mirrorX(48+ROBOT_WIDTH_CM/(2.54*2)), ROBOT_LENGTH_CM/(2.54)+24,toRadians(270))); // park
         ArrayList<Path> paths = new ArrayList<>();
         for (int i = 1; i< poses.size(); i++) {
             Path path = new Path(new BezierLine(poses.get(i - 1), poses.get(i)));
@@ -52,10 +53,10 @@ public class AutoFar extends LinearOpMode {
         }
         follower = Constants.createFollower(hardwareMap);
         follower.setStartingPose(poses.get(0));
-        shooter = new Shooter(hardwareMap, alliance.tagID, RobotConstants.ShootMode.FAR);
-        shooter.setSubRange(min(alliance.direction*90.0, 0.0), max(alliance.direction*90.0, 0.0));
+        shooter = new Shooter(hardwareMap, RobotConstants.ShootMode.FAR); // also hopefully make true
+        shooter.setSubRange(min(ALLIANCE_COLOUR.direction*90.0, 0.0), max(ALLIANCE_COLOUR.direction*90.0, 0.0));
         transferIntake = new TransferIntake(hardwareMap);
-        waitForStart();
+        while (!isStarted() && !isStopRequested()) { updateTelemetry(); }
         transferIntake.prepShooter();
         shooter.turnOnShooter();
         follow(paths.get(0));
@@ -70,6 +71,7 @@ public class AutoFar extends LinearOpMode {
             shoot();
         }
         follow(paths.get(7));
+        RobotState.AUTO_END_POSE = follower.getPose();
     }
     private void follow(Path path) {
         follower.followPath(path);
@@ -89,13 +91,18 @@ public class AutoFar extends LinearOpMode {
         transferIntake.shoot(false);
     }
     private void updateAll() {
-        shooter.moveTurret();
+        shooter.moveTurret(follower);
         shooter.spin();
         transferIntake.update();
         follower.update();
-        telemetry.addLine(shooter.getData());
-        telemetry.addLine(transferIntake.getData());
-        telemetry.addLine(Arrays.toString(follower.debug()));
+        updateTelemetry();
+    }
+    public void updateTelemetry() {
+        telemetry.addLine(ALLIANCE_COLOUR.toString());
+        telemetry.addLine(RobotState.displayNumToAttempt(attemptCount, RobotConstants.ShootMode.FAR));
+        telemetry.addLine(shooter.toString());
+        telemetry.addLine(transferIntake.toString());
+        telemetry.addLine(follower.getPose().toString());
         telemetry.update();
     }
 }
