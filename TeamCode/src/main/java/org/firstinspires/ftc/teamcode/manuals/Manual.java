@@ -72,6 +72,7 @@ public abstract class Manual extends LinearOpMode {
             if (gamepad1.left_bumper && timer.milliseconds() > timeToEnd) {
                 robotState = RobotState.SHOOTER_SPIN_UP;
                 transferIntake.prepShooter();
+                transferIntake.shoot(true);
                 shooter.turnOnShooter();
                 timeToEnd = timer.milliseconds() + 500;
             }
