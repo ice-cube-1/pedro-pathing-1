@@ -130,7 +130,7 @@ public class Shooter {
     private double getTurretAngle() {
         return ((turret[0].getPosition() + turret[1].getPosition()) / 2.0) * TURRET_MAX_DEGREES - TURRET_ZERO_DEG;
     }
-    public void reverseGoto() {
+    public void reverseTurret() {
         gotoPos = (gotoPos > 0) ? turretMin : turretMax;
     }
     private void setTurretPos(double pos) {
@@ -142,12 +142,6 @@ public class Shooter {
     public void setSubRange(double min, double max) {
         turretMin = min;
         turretMax = max;
-    }
-
-    public void reverseTurret() {
-        if (gotoPos == turretMin) {
-            gotoPos = turretMax;
-        } else gotoPos = turretMin;
     }
 
     public void toggleFromFar() {
