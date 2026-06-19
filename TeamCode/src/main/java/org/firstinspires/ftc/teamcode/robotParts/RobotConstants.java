@@ -14,8 +14,8 @@ public class RobotConstants {
     public static double STOP_DOWN = 0.32;
     public static double STOP_UP = 1.0;
 
-    public static double INTAKE_POWER = 1.0;
-    public static double TRANSFER_POWER = 1.0;
+    public static double INTAKE_POWER = 0.6;
+    public static double TRANSFER_POWER = 0.6;
 
     public static double KP_SHOOTER = 0.02;
     public static double HOOD_ANGLE = 1.0;

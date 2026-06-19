@@ -42,6 +42,7 @@ public class Shooter {
     public boolean paused = false;
     public ShootMode shootMode;
     public float distanceOffset;
+    public static float liveOffset;
 
     public Shooter(HardwareMap hardwareMap, ShootMode shootMode) {
         limelight = new Limelight(hardwareMap);
@@ -69,7 +70,7 @@ public class Shooter {
         }
         hoodAngle.setPosition(shootMode.hoodPos);
         if (shooterOn) {
-            return (int) (177.92 * (limelight.lastDist + shootMode.distanceOffset + distanceOffset) + 937.31);
+            return (int) (177.92 * (limelight.lastDist + shootMode.distanceOffset + distanceOffset + liveOffset) + 937.31);
         }
         return SHOOTER_IDLE_VELOCITY;
     }
