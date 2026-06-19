@@ -12,7 +12,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.ServoImplEx;
 
 import java.util.Objects;
-/*
+
 @TeleOp(name = "zero components - no controller", group = "tuning")
 public class ZeroNoController extends LinearOpMode {
     public static boolean zeroTurret = false;
@@ -57,4 +57,3 @@ public class ZeroNoController extends LinearOpMode {
         }
     }
 }
-*/
