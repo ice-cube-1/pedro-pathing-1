@@ -5,6 +5,7 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 import static org.firstinspires.ftc.teamcode.robotParts.RobotConstants.INTAKE_POWER;
 import static org.firstinspires.ftc.teamcode.robotParts.RobotConstants.STOP_DOWN;
@@ -16,18 +17,19 @@ import androidx.annotation.NonNull;
 import java.util.Locale;
 
 public class TransferIntake {
-    public enum IntakeStates {INTAKE, SHOOTING}
+    public enum IntakeStates {INTAKE, SHOOTING_IN, SHOOTING_OUT}
     private double intakePower = 0.0;
     public DcMotorEx intake;
     public DcMotorEx transfer;
     public Servo stop;
+    private ElapsedTime shootTimer = new ElapsedTime();
     private IntakeStates intakeState = IntakeStates.INTAKE;
     public TransferIntake(HardwareMap hardwareMap) {
         intake = hardwareMap.get(DcMotorEx.class, "intake");
         intake.setDirection(DcMotorSimple.Direction.REVERSE);
         intake.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         transfer = hardwareMap.get(DcMotorEx.class, "transfer");
-        transfer.setDirection(DcMotorSimple.Direction.FORWARD);
+        transfer.setDirection(DcMotorSimple.Direction.REVERSE);
         transfer.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
         stop = hardwareMap.get(Servo.class, "stop");
         stop.setPosition(STOP_DOWN);
@@ -39,7 +41,8 @@ public class TransferIntake {
             stop.setPosition(STOP_UP);
             transfer.setPower(0.0);
             intake.setPower(0.0);
-            intakeState = IntakeStates.SHOOTING;
+            intakeState = IntakeStates.SHOOTING_IN;
+            shootTimer.reset();
         } else {
             stop.setPosition(STOP_DOWN);
             transfer.setPower(0.0);
@@ -55,9 +58,21 @@ public class TransferIntake {
     public void intake(Double i) {intakePower = i;}
     public void update() {
         switch (intakeState) {
-            case SHOOTING:
+            case SHOOTING_IN:
                 transfer.setPower(TRANSFER_POWER);
                 intake.setPower(INTAKE_POWER);
+                if (shootTimer.milliseconds() > 700) {
+                    shootTimer.reset();
+                    intakeState = IntakeStates.SHOOTING_OUT;
+                }
+                break;
+            case SHOOTING_OUT:
+                transfer.setPower(TRANSFER_POWER);
+                intake.setPower(-0.5);
+                if (shootTimer.milliseconds() > 300) {
+                    shootTimer.reset();
+                    intakeState = IntakeStates.SHOOTING_IN;
+                }
                 break;
             case INTAKE:
                 intake.setPower(intakePower);

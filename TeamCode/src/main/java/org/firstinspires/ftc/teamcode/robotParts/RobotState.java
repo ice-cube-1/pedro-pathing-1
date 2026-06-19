@@ -1,12 +1,14 @@
 package org.firstinspires.ftc.teamcode.robotParts;
 
+import static java.lang.Math.toRadians;
+
 import com.bylazar.configurables.annotations.Configurable;
 import com.pedropathing.geometry.Pose;
 
 @Configurable
 public class RobotState {
     public static RobotConstants.Alliance ALLIANCE_COLOUR = RobotConstants.Alliance.BLUE;
-    public static Pose AUTO_END_POSE = new Pose(Debug.startPoseX, Debug.startPoseY, Debug.startPoseThetaDeg);
+    public static Pose AUTO_END_POSE = new Pose(Debug.startPoseX, Debug.startPoseY, toRadians(Debug.startPoseThetaDeg + 180));
     public static int NUM_TO_ATTEMPT = 0;
     public static String displayNumToAttempt(int n, RobotConstants.ShootMode shootMode) {
         return switch (n) {
