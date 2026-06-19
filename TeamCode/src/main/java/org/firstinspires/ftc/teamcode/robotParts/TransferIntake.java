@@ -37,8 +37,8 @@ public class TransferIntake {
     public void shoot(boolean s) {
         if (s) {
             stop.setPosition(STOP_UP);
-            transfer.setPower(0.0);
-            intake.setPower(0.0);
+            transfer.setPower(1.0);
+            intake.setPower(1.0);
             intakeState = IntakeStates.SHOOTING;
         } else {
             stop.setPosition(STOP_DOWN);
