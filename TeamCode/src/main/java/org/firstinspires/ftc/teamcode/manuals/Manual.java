@@ -116,7 +116,7 @@ public abstract class Manual extends LinearOpMode {
                 transferIntake.shoot(true);
             }
             transferIntake.update();
-            shooter.moveTurret(follower);
+            //shooter.moveTurret(follower);
             shooter.spin();
             updateTelemetry();
         }
