@@ -2,9 +2,7 @@ package org.firstinspires.ftc.teamcode.robotParts;
 
 import com.bylazar.configurables.annotations.Configurable;
 import com.pedropathing.follower.Follower;
-import com.qualcomm.hardware.limelightvision.LLResult;
-import com.qualcomm.hardware.limelightvision.LLResultTypes;
-import com.qualcomm.hardware.limelightvision.Limelight3A;
+import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
@@ -15,20 +13,19 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 
 import static org.firstinspires.ftc.teamcode.robotParts.RobotConstants.*;
 
+import static java.lang.Math.PI;
 import static java.lang.Math.abs;
+import static java.lang.Math.toDegrees;
+import static java.lang.Math.toRadians;
 
 import androidx.annotation.NonNull;
-
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
-import org.firstinspires.ftc.robotcore.external.navigation.Position;
-
 import java.util.Arrays;
 import java.util.Locale;
+import java.util.Optional;
 
 @Configurable
 public class Shooter {
-    private final Limelight3A limelight;
+    private final Limelight limelight;
     private final ServoImplEx[] turret = new ServoImplEx[2];
     private final Servo hoodAngle;
     private final DcMotorEx[] motors;
@@ -36,10 +33,7 @@ public class Shooter {
     private TurretState turretState = TurretState.WRAPPING;
     private boolean shooterOn = false;
     private int targetV = SHOOTER_IDLE_VELOCITY;
-    private double lastDist = 0.0;
-    private double lastAngle = 0.0;
     private double power = 0.0;
-    private double mostRecent = -1000.0;
     private double nextPos = 0.0;
     public boolean atSpeed = true;
     private double turretMin = -TURRET_ZERO_DEG;
@@ -50,7 +44,7 @@ public class Shooter {
     public float distanceOffset;
 
     public Shooter(HardwareMap hardwareMap, ShootMode shootMode) {
-        limelight = hardwareMap.get(Limelight3A.class, "limelight");
+        limelight = new Limelight(hardwareMap);
         this.shootMode = shootMode;
         turret[0] = hardwareMap.get(ServoImplEx.class, "t1");
         turret[0].setPosition(0.5);
@@ -65,7 +59,7 @@ public class Shooter {
     }
 
     public boolean canShoot() {
-        return (abs(lastAngle) < 4 && turretState == TurretState.DETECTED) || paused;
+        return (abs(limelight.lastAngle) < 4 && turretState == TurretState.DETECTED) || paused;
     }
 
     private int getTargetVelocity() {
@@ -75,47 +69,38 @@ public class Shooter {
         }
         hoodAngle.setPosition(shootMode.hoodPos);
         if (shooterOn) {
-            return (int) (177.92 * (lastDist + shootMode.distanceOffset + distanceOffset) + 937.31);
+            return (int) (177.92 * (limelight.lastDist + shootMode.distanceOffset + distanceOffset) + 937.31);
         }
         return SHOOTER_IDLE_VELOCITY;
     }
-    private void lookForTag() {
-        LLResult result = limelight.getLatestResult();
-
-        if (result == null) return;
-        if (!result.isValid()) return;
-
-        for (LLResultTypes.FiducialResult tag : result.getFiducialResults()) {
-            if (tag.getFiducialId() == RobotState.ALLIANCE_COLOUR.tagID) {
-                mostRecent = timer.milliseconds() - result.getStaleness();
-                Pose3D pose = tag.getTargetPoseCameraSpace();
-                Position pos = pose.getPosition();
-                double yaw = pose.getOrientation().getYaw(AngleUnit.RADIANS);
-                double targetX = pos.x - OFFSET * Math.sin(yaw);
-                double targetZ = pos.z - OFFSET * Math.cos(yaw);
-                lastDist = Math.sqrt(targetX * targetX + targetZ * targetZ) + distanceOffset;
-                lastAngle = Math.toDegrees(Math.atan2(targetX, targetZ));
-            }
-        }
+    public static double calculateAngleToPose(Pose robot, Pose target) {
+        double dx = target.getX() - robot.getX();
+        double dy = target.getY() - robot.getY();
+        double rawDelta = Math.atan2(dy, dx) - robot.getHeading();
+        return -Math.atan2(Math.sin(rawDelta), Math.cos(rawDelta));
     }
     public void moveTurret(Follower follower) {
-        lookForTag();
+        double angle = calculateAngleToPose(follower.getPose(), new Pose(RobotState.ALLIANCE_COLOUR.mirrorX(12), 132,0));
+        limelight.update(follower);
         switch (turretState) {
             case DETECTED:
-                if (timer.milliseconds() > mostRecent + 500) {
+                if (timer.milliseconds() > limelight.mostRecent + 500) {
+                    // comment out the below line if it's acting up
+                    gotoPos = (toDegrees(angle) - getTurretAngle() > 0) ? turretMin : turretMax;
                     turretState = TurretState.WRAPPING;
-                } else if (Math.abs(lastAngle) > 1.0) {
-                    nextPos = lastAngle * shootMode.detectedKP + getTurretAngle();
+                } else if (abs(limelight.lastAngle) > 1.0) {
+                    nextPos = limelight.lastAngle * shootMode.detectedKP + getTurretAngle();
                 }
                 break;
             case WRAPPING:
-                if (timer.milliseconds() < mostRecent + 500) {
+                if (timer.milliseconds() < limelight.mostRecent + 500) {
                     turretState = TurretState.DETECTED;
                 } else {
                     nextPos = (gotoPos - getTurretAngle() > 0 ? shootMode.wrappingStep : -shootMode.wrappingStep) + getTurretAngle();
                 }
                 break;
         }
+
         if (!paused) {
             if (nextPos >= turretMax) {
                 gotoPos = turretMin;
@@ -130,9 +115,7 @@ public class Shooter {
     private double getTurretAngle() {
         return ((turret[0].getPosition() + turret[1].getPosition()) / 2.0) * TURRET_MAX_DEGREES - TURRET_ZERO_DEG;
     }
-    public void reverseTurret() {
-        gotoPos = (gotoPos > 0) ? turretMin : turretMax;
-    }
+
     private void setTurretPos(double pos) {
         double clamped = Math.min(1.0, Math.max((pos + TURRET_ZERO_DEG) / TURRET_MAX_DEGREES, 0.0));
         turret[0].setPosition(clamped);
@@ -142,6 +125,12 @@ public class Shooter {
     public void setSubRange(double min, double max) {
         turretMin = min;
         turretMax = max;
+    }
+
+    public void reverseTurret() {
+        if (gotoPos == turretMin) {
+            gotoPos = turretMax;
+        } else gotoPos = turretMin;
     }
 
     public void toggleFromFar() {
@@ -181,8 +170,7 @@ public class Shooter {
     public String toString() {
         return String.format(Locale.UK, "---TURRET---\nCurrently %s\nAt position %.3f, going to %.3f", turretState, getTurretAngle(), nextPos) +
                 String.format(Locale.UK, "---SHOOTER---\nCurrently %s, mode: %s\nTarget power: %.0f, encoder readings: (%.0f, %.0f)\nOffset: %.3f(mode) + %.3f(manual)",
-                        shooterOn ? "on" : "off", shootMode, power, motors[0].getVelocity(), motors[1].getVelocity(), shootMode.distanceOffset, distanceOffset) +"\n" +
-                String.format(Locale.UK, "---LIMELIGHT---\nDistance: %.3f, Angle: %.3f, Detection age: %.3f",lastDist, lastAngle, mostRecent);
+                        shooterOn ? "on" : "off", shootMode, power, motors[0].getVelocity(), motors[1].getVelocity(), shootMode.distanceOffset, distanceOffset) + limelight +"\n";
     }
     public DcMotorEx init_motor(String name, HardwareMap hardwareMap, DcMotorSimple.Direction direction) {
         DcMotorEx drive = hardwareMap.get(DcMotorEx.class, name);

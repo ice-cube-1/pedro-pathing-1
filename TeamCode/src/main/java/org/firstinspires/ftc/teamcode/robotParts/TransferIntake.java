@@ -27,7 +27,7 @@ public class TransferIntake {
         intake.setDirection(DcMotorSimple.Direction.REVERSE);
         intake.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         transfer = hardwareMap.get(DcMotorEx.class, "transfer");
-        transfer.setDirection(DcMotorSimple.Direction.FORWARD);
+        transfer.setDirection(DcMotorSimple.Direction.REVERSE);
         transfer.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
         stop = hardwareMap.get(Servo.class, "stop");
         stop.setPosition(STOP_DOWN);
